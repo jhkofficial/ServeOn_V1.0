@@ -23,7 +23,7 @@ import { ScreenAuditLog } from './components/Screens/ScreenAuditLog';
 import { ScreenApplicationSettings } from './components/Screens/ScreenApplicationSettings';
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<{
     name: string;
     email: string;
@@ -36,7 +36,7 @@ export default function App() {
     title: 'Regional Strategy Lead',
   });
 
-  const [currentScreen, setCurrentScreen] = useState<ScreenId>('executive-overview');
+  const [currentScreen, setCurrentScreen] = useState<ScreenId>('login');
   const [selectedAreaId, setSelectedAreaId] = useState<string>('semarang-selatan');
 
   const [filters, setFilters] = useState<GlobalFilterState>({
