@@ -122,12 +122,12 @@ export const Screen05NewCustomerAcquisition: React.FC<Props> = ({
 
           <div className="my-3">
             <SemarangMap
-              areas={areas}
+              areas={safeAreas}
               selectedAreaId={selectedAreaId}
               onSelectArea={onSelectArea}
               activeLayer="ACQUISITION"
-              heightClass="h-80"
-              compact
+              heightClass="h-[430px]"
+              initialBaseMode="tile"
             />
           </div>
 

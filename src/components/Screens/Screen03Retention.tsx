@@ -112,21 +112,24 @@ export const Screen03Retention: React.FC<Props> = ({
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div>
               <h3 className="font-bold text-slate-900 text-sm">Retention Risk &amp; Opportunity Map</h3>
-              <p className="text-xs text-slate-500">Darker shades highlight districts with highest retention urgency</p>
+              <p className="text-xs text-slate-500">Peta Semarang dengan gradasi retensi: area gelap menandakan urgensi penyelamatan tertinggi</p>
             </div>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
-              Choropleth Layer: Density &amp; Risk
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200">
+                Layer: Retention Opportunity &amp; Churn Risk
+              </span>
+            </div>
           </div>
 
           <div className="my-3">
             <SemarangMap
-              areas={areas}
+              areas={safeAreas}
               selectedAreaId={selectedAreaId}
               onSelectArea={onSelectArea}
-              activeLayer="DENSITY"
-              heightClass="h-80"
-              compact
+              activeLayer="RETENTION"
+              heightClass="h-[430px]"
+              initialBaseMode="tile"
+              initialTileStyle="positron"
             />
           </div>
 
