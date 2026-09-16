@@ -379,7 +379,7 @@ export const ScreenLogin: React.FC<ScreenLoginProps> = ({ onLogin, onLoginSucces
 
           {/* Footer */}
           <div className="mt-8 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-            <span className="font-semibold text-slate-600">SERVEON V1.0</span>
+            <span className="font-semibold text-slate-600">SERVEON V2.1</span>
             <span>Decision Intelligence Platform</span>
           </div>
         </div>
