@@ -118,7 +118,7 @@ export default function App() {
 
   // If user is logged out or viewing login screen
   if (!isLoggedIn || currentScreen === 'login') {
-    return <ScreenLogin onLoginSuccess={handleLoginSuccess} />;
+    return <ScreenLogin onLoginSuccess={handleLoginSuccess} onLogin={handleLoginSuccess} />;
   }
 
   return (

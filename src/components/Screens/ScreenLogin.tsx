@@ -19,10 +19,19 @@ import {
 } from 'lucide-react';
 
 interface ScreenLoginProps {
-  onLogin: (user: { name: string; email: string; role: UserRole; title: string }) => void;
+  onLogin?: (user: { name: string; email: string; role: UserRole; title: string }) => void;
+  onLoginSuccess?: (user: { name: string; email: string; role: UserRole; title: string }) => void;
 }
 
-export const ScreenLogin: React.FC<ScreenLoginProps> = ({ onLogin }) => {
+export const ScreenLogin: React.FC<ScreenLoginProps> = ({ onLogin, onLoginSuccess }) => {
+  const triggerLogin = (user: { name: string; email: string; role: UserRole; title: string }) => {
+    if (onLoginSuccess) {
+      onLoginSuccess(user);
+    } else if (onLogin) {
+      onLogin(user);
+    }
+  };
+
   const [email, setEmail] = useState('johanes@company.com');
   const [password, setPassword] = useState('••••••••••••');
   const [rememberMe, setRememberMe] = useState(true);
@@ -68,7 +77,7 @@ export const ScreenLogin: React.FC<ScreenLoginProps> = ({ onLogin }) => {
     setIsLoading(true);
     setTimeout(() => {
       const match = DEMO_ACCOUNTS.find((a) => a.role === selectedDemoRole) || DEMO_ACCOUNTS[0];
-      onLogin({
+      triggerLogin({
         name: match.name,
         email: email || match.email,
         role: match.role,
@@ -81,7 +90,7 @@ export const ScreenLogin: React.FC<ScreenLoginProps> = ({ onLogin }) => {
   const handleSSO = () => {
     setIsLoading(true);
     setTimeout(() => {
-      onLogin({
+      triggerLogin({
         name: 'Johanes Harindrias',
         email: 'johanes@company.com',
         role: 'Application Admin',
