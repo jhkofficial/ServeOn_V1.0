@@ -22,6 +22,12 @@ import { ScreenRolePermission } from './components/Screens/ScreenRolePermission'
 import { ScreenAuditLog } from './components/Screens/ScreenAuditLog';
 import { ScreenApplicationSettings } from './components/Screens/ScreenApplicationSettings';
 
+// Closed-Loop RESULT Pillars (Screens H, I, J, K)
+import { ScreenActionExecution } from './components/Screens/ScreenActionExecution';
+import { ScreenPerformanceMeasurement } from './components/Screens/ScreenPerformanceMeasurement';
+import { ScreenBusinessValue } from './components/Screens/ScreenBusinessValue';
+import { ScreenLearningFeedback } from './components/Screens/ScreenLearningFeedback';
+
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<{
@@ -253,6 +259,32 @@ export default function App() {
               areas={filteredAreas}
               selectedAreaId={selectedAreaId}
               onSelectArea={setSelectedAreaId}
+              onNavigate={handleNavigate}
+            />
+          )}
+
+          {/* RESULT / IMPACT PILLARS */}
+          {currentScreen === 'action-execution' && (
+            <ScreenActionExecution
+              onNavigate={handleNavigate}
+              currentUserRole={currentUser.role}
+            />
+          )}
+
+          {currentScreen === 'performance-measurement' && (
+            <ScreenPerformanceMeasurement
+              onNavigate={handleNavigate}
+            />
+          )}
+
+          {currentScreen === 'business-value' && (
+            <ScreenBusinessValue
+              onNavigate={handleNavigate}
+            />
+          )}
+
+          {currentScreen === 'learning-feedback' && (
+            <ScreenLearningFeedback
               onNavigate={handleNavigate}
             />
           )}

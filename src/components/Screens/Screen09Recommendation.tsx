@@ -3,21 +3,25 @@ import { AreaIntelligence, ScreenId } from '../../types';
 import { SEMARANG_AREAS } from '../../data/semarangData';
 import { StrategicRoleBadge } from '../Common/StrategicRoleBadge';
 import { ConfidenceIndicator } from '../Common/ConfidenceIndicator';
+import { CreateActionPlanDrawer } from '../Modals/CreateActionPlanDrawer';
 import { 
   Award, 
   CheckCircle2, 
   Circle, 
   ArrowRight, 
-  Send, 
   FileCheck, 
   Clock, 
-  ShieldCheck, 
   Sparkles,
   AlertCircle,
-  HelpCircle,
   MapPin,
-  Share2,
-  Download
+  XCircle,
+  PlayCircle,
+  Activity,
+  Calendar,
+  Layers,
+  HelpCircle,
+  TrendingUp,
+  ShieldCheck
 } from 'lucide-react';
 
 interface Props {
@@ -37,12 +41,25 @@ export const Screen09Recommendation: React.FC<Props> = ({
   const area = safeAreas.find((a) => a.id === selectedAreaId) || SEMARANG_AREAS.find((a) => a.id === selectedAreaId) || SEMARANG_AREAS[0];
   const { recommendation } = area;
 
-  const [workflowStage, setWorkflowStage] = useState<'GENERATED' | 'REVIEWED' | 'APPROVED' | 'EXECUTED' | 'MEASURED'>(
-    recommendation.workflowStage
-  );
+  // Recommendation ID derivation
+  const prefix = recommendation.primaryObjective === 'RETENTION' 
+    ? 'RET' 
+    : recommendation.primaryObjective === 'MARKET_DEFENSE' 
+    ? 'DEF' 
+    : recommendation.primaryObjective === 'ACQUISITION' 
+    ? 'ACQ' 
+    : 'EXP';
+  const areaIndex = safeAreas.findIndex((a) => a.id === area.id) + 1;
+  const recId = area.id === 'semarang-selatan' 
+    ? 'REC-RET-202609-001' 
+    : `REC-${prefix}-202609-${String(areaIndex).padStart(3, '0')}`;
+
+  const [decisionStatus, setDecisionStatus] = useState<'GENERATED' | 'APPROVED' | 'NEEDS_REVIEW' | 'REJECTED'>('APPROVED');
+  const [workflowStage, setWorkflowStage] = useState<'GENERATED' | 'REVIEWED' | 'APPROVED' | 'EXECUTED' | 'MEASURED'>('APPROVED');
   const [approvalNote, setApprovalNote] = useState('');
   const [showApprovalModal, setShowApprovalModal] = useState(false);
-  const [completedSteps, setCompletedSteps] = useState<number[]>([1]);
+  const [isActionPlanDrawerOpen, setIsActionPlanDrawerOpen] = useState(false);
+  const [completedSteps, setCompletedSteps] = useState<number[]>([1, 2]);
 
   const toggleStep = (stepNumber: number) => {
     setCompletedSteps((prev) =>
@@ -51,7 +68,7 @@ export const Screen09Recommendation: React.FC<Props> = ({
   };
 
   const stages = [
-    { id: 'GENERATED', label: 'Generated', desc: 'AI/Analytics recommendation drafted' },
+    { id: 'GENERATED', label: 'Generated', desc: 'Algorithm recommendation drafted' },
     { id: 'REVIEWED', label: 'Reviewed', desc: 'Regional planning validation' },
     { id: 'APPROVED', label: 'Approved', desc: 'Management sign-off granted' },
     { id: 'EXECUTED', label: 'Executed', desc: 'Field operations underway' },
@@ -67,48 +84,126 @@ export const Screen09Recommendation: React.FC<Props> = ({
         <div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-blue-700 uppercase tracking-wider font-mono">
-              Screen 09 • Final Decision Support
+              Screen 09 • Recommendation &amp; Decision Lifecycle
             </span>
             <span className="text-slate-300">•</span>
-            <span className="text-xs text-slate-500 font-medium">DECIDE Pillar</span>
+            <span className="text-xs text-slate-500 font-medium">DECIDE &amp; EXECUTE</span>
           </div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight mt-0.5">
             What should we do?
           </h1>
           <p className="text-sm text-slate-600 mt-1 max-w-3xl">
-            Synthesized, explainable recommendation with operational action milestones and management governance approval lifecycle.
+            Synthesized recommendation with executive governance approval controls and direct transition into field action execution and counterfactual measurement.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={() => onNavigate('strategic-map')}
-            className="px-3.5 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors flex items-center gap-1.5"
+            className="px-3.5 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
           >
             <MapPin className="w-3.5 h-3.5" />
             <span>Map View</span>
           </button>
-          <button
-            onClick={() => setShowApprovalModal(true)}
-            className="px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5"
+
+          {decisionStatus === 'APPROVED' ? (
+            <button
+              onClick={() => setIsActionPlanDrawerOpen(true)}
+              className="px-4 py-2 rounded-lg bg-blue-900 hover:bg-blue-800 text-white text-xs font-bold uppercase tracking-wider shadow-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-[0.99]"
+            >
+              <PlayCircle className="w-4 h-4" />
+              <span>Create Action Plan</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowApprovalModal(true)}
+              className="px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <FileCheck className="w-4 h-4" />
+              <span>Approve &amp; Endorse</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* DECISION STATUS BAR & EXECUTIVE GOVERNANCE CONTROLS (Requested in Prompt) */}
+      <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider font-mono">
+            RECOMMENDATION STATUS:
+          </span>
+          <span
+            className={`px-3 py-1 rounded-full text-xs font-black tracking-wider uppercase border ${
+              decisionStatus === 'APPROVED'
+                ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                : decisionStatus === 'NEEDS_REVIEW'
+                ? 'bg-amber-100 text-amber-900 border-amber-300'
+                : decisionStatus === 'REJECTED'
+                ? 'bg-rose-100 text-rose-900 border-rose-300'
+                : 'bg-blue-100 text-blue-900 border-blue-300'
+            }`}
           >
-            <FileCheck className="w-4 h-4" />
-            <span>Approve &amp; Endorse Action</span>
+            {decisionStatus.replace('_', ' ')}
+          </span>
+          <span className="text-xs text-slate-500 font-mono">ID: {recId}</span>
+        </div>
+
+        {/* Action Decision Controls: [Approve Recommendation] [Needs Review] [Reject Recommendation] */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setDecisionStatus('APPROVED');
+              setWorkflowStage('APPROVED');
+            }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              decisionStatus === 'APPROVED'
+                ? 'bg-emerald-700 text-white shadow-xs'
+                : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'
+            }`}
+          >
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>Approve Recommendation</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setDecisionStatus('NEEDS_REVIEW');
+              setWorkflowStage('REVIEWED');
+            }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              decisionStatus === 'NEEDS_REVIEW'
+                ? 'bg-amber-600 text-white shadow-xs'
+                : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
+            }`}
+          >
+            <Clock className="w-3.5 h-3.5" />
+            <span>Needs Review</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setDecisionStatus('REJECTED');
+            }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              decisionStatus === 'REJECTED'
+                ? 'bg-rose-700 text-white shadow-xs'
+                : 'bg-rose-50 text-rose-800 hover:bg-rose-100 border border-rose-200'
+            }`}
+          >
+            <XCircle className="w-3.5 h-3.5" />
+            <span>Reject</span>
           </button>
         </div>
       </div>
 
-      {/* Decision Card (Block 1 - Signature Decision Card from Blueprint) */}
+      {/* Primary Signature Decision Card */}
       <div className="rounded-2xl border-2 border-blue-600 bg-white p-6 shadow-md relative overflow-hidden">
-        {/* Subtle decorative accent */}
-        <div className="absolute top-0 right-0 w-48 h-48 bg-blue-50/50 rounded-full blur-2xl pointer-events-none -mr-12 -mt-12" />
-
         <div className="relative z-10 space-y-5">
           {/* Top Row: Area, Role, Objective, Priority, Confidence */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-200">
             <div>
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider font-mono">
-                Official SERVEON Decision Card • Area Reference: {area.code}
+                Official SERVEON Decision Card • Recommendation ID: <span className="text-blue-700 font-bold">{recId}</span>
               </span>
               <div className="flex items-center gap-3 mt-1">
                 <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
@@ -120,8 +215,8 @@ export const Screen09Recommendation: React.FC<Props> = ({
 
             <div className="flex flex-wrap items-center gap-3">
               <div className="px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-xs">
-                <span className="text-slate-500 block text-[10px] uppercase font-bold">Objective</span>
-                <span className="font-extrabold text-blue-800 font-sans">{recommendation.primaryObjective}</span>
+                <span className="text-slate-500 block text-[10px] uppercase font-bold">Business Objective</span>
+                <span className="font-extrabold text-blue-800 font-sans">{recommendation.primaryObjective.replace('_', ' ')}</span>
               </div>
 
               <div className="px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-xs">
@@ -136,13 +231,33 @@ export const Screen09Recommendation: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Block 2: WHY Supporting Reasons */}
+          {/* Block 2: WHY Supporting Reasons (Scores from prompt) */}
           <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 uppercase tracking-wider">
               <Sparkles className="w-3.5 h-3.5 text-blue-600" />
               <span>WHY THIS DECISION (Top Analytical Drivers):</span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700">
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+              <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-500 uppercase block">Customer Density</span>
+                <div className="text-base font-extrabold text-slate-900 font-mono mt-0.5">{area.customerDensity}</div>
+              </div>
+              <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-500 uppercase block">Retention Opportunity</span>
+                <div className="text-base font-extrabold text-blue-800 font-mono mt-0.5">{area.retentionOpportunityScore}</div>
+              </div>
+              <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-500 uppercase block">Competition Pressure</span>
+                <div className="text-base font-extrabold text-amber-700 font-mono mt-0.5">{area.competitionPressureScore}</div>
+              </div>
+              <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-500 uppercase block">Business Contribution</span>
+                <div className="text-base font-extrabold text-emerald-800 font-mono mt-0.5">{area.businessContributionScore}</div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700 pt-1">
               {area.businessReasons.map((reason, idx) => (
                 <div key={idx} className="flex items-start gap-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200/80">
                   <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
@@ -165,13 +280,13 @@ export const Screen09Recommendation: React.FC<Props> = ({
             </p>
           </div>
 
-          {/* Block 4: NEXT ACTIONS (3-5 actionable steps) */}
+          {/* Block 4: NEXT ACTIONS (Operational steps) */}
           <div className="space-y-3 pt-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                NEXT ACTIONS &amp; OPERATIONAL CADENCE ({completedSteps.length}/{recommendation.nextActions.length} Started)
+                NEXT ACTIONS &amp; OPERATIONAL CADENCE ({completedSteps.length}/{recommendation.nextActions.length} Ready)
               </span>
-              <span className="text-slate-500 text-[11px]">Click checkbox to toggle milestone execution</span>
+              <span className="text-slate-500 text-[11px]">Click checkbox to toggle milestone readiness</span>
             </div>
 
             <div className="space-y-2">
@@ -211,7 +326,7 @@ export const Screen09Recommendation: React.FC<Props> = ({
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded shrink-0 ${
                       isDone ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-600'
                     }`}>
-                      {isDone ? 'Initiated' : 'Pending'}
+                      {isDone ? 'Ready / Started' : 'Pending'}
                     </span>
                   </div>
                 );
@@ -221,7 +336,84 @@ export const Screen09Recommendation: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* Block 5: Future Workflow Lifecycle (Generated → Reviewed → Approved → Executed → Measured) */}
+      {/* CONTINUATION QUESTIONS (From User Specification) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* HOW WILL WE EXECUTE IT? */}
+        <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-4">
+          <div>
+            <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+              <PlayCircle className="w-4 h-4 text-blue-700" />
+              <h3 className="font-bold text-slate-900 text-xs uppercase tracking-wider">
+                How will we execute it?
+              </h3>
+            </div>
+            <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+              Transition this recommendation into a structured field execution with assigned owners, budget tracking, customer cohort targeting, and daily return rates.
+            </p>
+            <div className="mt-3 p-3 rounded-lg bg-slate-50 border border-slate-200/80 text-xs space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Target Cohort:</span>
+                <span className="font-bold text-slate-900">5,000 High-Density Accounts</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Authorized Budget:</span>
+                <span className="font-mono font-bold text-blue-900">Rp50,000,000</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Assigned Team:</span>
+                <span className="font-bold text-slate-800">CRM Regional Jawa Tengah</span>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => onNavigate('action-execution')}
+            className="w-full py-2.5 px-3 rounded-lg bg-blue-900 hover:bg-blue-800 text-white font-bold text-xs tracking-wider uppercase transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+          >
+            <span>Open Action Execution Dashboard</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* HOW WILL WE MEASURE IT? */}
+        <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-4">
+          <div>
+            <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+              <Activity className="w-4 h-4 text-emerald-700" />
+              <h3 className="font-bold text-slate-900 text-xs uppercase tracking-wider">
+                How will we measure it?
+              </h3>
+            </div>
+            <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+              Verify actual incremental uplift using scientific counterfactual methods (Treatment vs Control split) to isolate pure algorithmic value.
+            </p>
+            <div className="mt-3 p-3 rounded-lg bg-emerald-50/50 border border-emerald-200 text-xs space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-emerald-800">Measurement Method:</span>
+                <span className="font-bold text-emerald-950 font-mono">Treatment vs Control (50/50)</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-emerald-800">Primary Evaluation KPI:</span>
+                <span className="font-bold text-emerald-950">Incremental Retention (+6 ppt uplift)</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-emerald-800">Expected Net ROI:</span>
+                <span className="font-mono font-bold text-emerald-950">+200% (Rp100M Net Benefit)</span>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => onNavigate('performance-measurement')}
+            className="w-full py-2.5 px-3 rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs tracking-wider uppercase transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+          >
+            <span>Open Performance Measurement</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Governance Decision Lifecycle (Generated -> Reviewed -> Approved -> Executed -> Measured) */}
       <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
           <div>
@@ -232,7 +424,7 @@ export const Screen09Recommendation: React.FC<Props> = ({
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-500 font-medium">Current Status:</span>
-            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
               {workflowStage}
             </span>
           </div>
@@ -274,7 +466,23 @@ export const Screen09Recommendation: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* Approval Modal / Action Endorsement Dialogue */}
+      {/* Slide-over Create Action Plan Drawer */}
+      <CreateActionPlanDrawer
+        isOpen={isActionPlanDrawerOpen}
+        onClose={() => setIsActionPlanDrawerOpen(false)}
+        initialRecommendation={{
+          recommendationId: recId,
+          objective: recommendation.primaryObjective,
+          areaId: area.id,
+          areaName: area.name,
+          recommendedAction: recommendation.recommendedAction,
+        }}
+        onSaveActionPlan={(plan) => {
+          onNavigate('action-execution');
+        }}
+      />
+
+      {/* Approval Modal */}
       {showApprovalModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full p-6 space-y-4">
@@ -284,7 +492,7 @@ export const Screen09Recommendation: React.FC<Props> = ({
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed">
-              You are endorsing the <strong>{recommendation.recommendedAction}</strong> for <strong>{area.name}</strong> under the <strong>{recommendation.primaryObjective}</strong> objective.
+              You are endorsing the <strong>{recommendation.recommendedAction}</strong> for <strong>{area.name}</strong> under the <strong>{recommendation.primaryObjective.replace('_', ' ')}</strong> objective.
             </p>
 
             <div className="space-y-1.5 text-xs">
@@ -300,18 +508,20 @@ export const Screen09Recommendation: React.FC<Props> = ({
             <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 text-xs font-semibold">
               <button
                 onClick={() => setShowApprovalModal(false)}
-                className="px-4 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700"
+                className="px-4 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={() => {
+                  setDecisionStatus('APPROVED');
                   setWorkflowStage('APPROVED');
                   setShowApprovalModal(false);
+                  setIsActionPlanDrawerOpen(true);
                 }}
-                className="px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white shadow-xs"
+                className="px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white shadow-xs cursor-pointer"
               >
-                Confirm Management Approval
+                Confirm Approval &amp; Create Action Plan
               </button>
             </div>
           </div>

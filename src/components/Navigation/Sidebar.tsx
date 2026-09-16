@@ -16,6 +16,12 @@ import {
   KeyRound,
   ClipboardList,
   Sliders,
+  PlayCircle,
+  Activity,
+  BarChart3,
+  DollarSign,
+  RefreshCw,
+  Zap,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -119,6 +125,39 @@ export const Sidebar: React.FC<SidebarProps> = ({
           icon: Award,
           badge: 'Action',
           badgeColor: 'blue',
+        },
+      ],
+    },
+    {
+      group: 'RESULT',
+      items: [
+        {
+          id: 'action-execution' as ScreenId,
+          label: 'Action Execution',
+          icon: PlayCircle,
+          badge: 'Live',
+          badgeColor: 'blue',
+        },
+        {
+          id: 'performance-measurement' as ScreenId,
+          label: 'Performance Measurement',
+          icon: BarChart3,
+          badge: '16 Tests',
+          badgeColor: 'emerald',
+        },
+        {
+          id: 'business-value' as ScreenId,
+          label: 'Business Value',
+          icon: DollarSign,
+          badge: 'Rp2.4B',
+          badgeColor: 'emerald',
+        },
+        {
+          id: 'learning-feedback' as ScreenId,
+          label: 'Learning & Feedback',
+          icon: RefreshCw,
+          badge: 'Loop',
+          badgeColor: 'purple',
         },
       ],
     },

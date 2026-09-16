@@ -138,6 +138,9 @@ export const Screen02StrategicActionMap: React.FC<Props> = ({
             activeLayer={mapLayer}
             onLayerChange={setMapLayer}
             heightClass="h-[560px]"
+            initialSpatialPattern="hexagonal"
+            initialHexMetric="DOMINANT_ROLE"
+            showPatternToggle={true}
           />
 
           {/* Quick Area Cards below map */}

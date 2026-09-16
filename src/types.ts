@@ -13,10 +13,143 @@ export type ScreenId =
   | 'candidate-detail'
   | 'explainability'
   | 'recommendation'
+  | 'action-execution'
+  | 'performance-measurement'
+  | 'business-value'
+  | 'learning-feedback'
   | 'user-management'
   | 'role-permission'
   | 'audit-log'
   | 'application-settings';
+
+export type RecommendationLifecycleStatus = 
+  | 'GENERATED'
+  | 'UNDER REVIEW'
+  | 'APPROVED'
+  | 'IN EXECUTION'
+  | 'COMPLETED'
+  | 'MEASURED'
+  | 'CLOSED'
+  | 'REJECTED'
+  | 'CANCELLED'
+  | 'ON HOLD';
+
+export type ExecutionHealthStatus = 'ON TRACK' | 'AT RISK' | 'DELAYED' | 'COMPLETED';
+
+export type MeasurementMethodType = 
+  | 'Treatment vs Control'
+  | 'Before vs After'
+  | 'Pilot vs Comparison Area'
+  | 'Historical Benchmark'
+  | 'Counterfactual Benchmark';
+
+export type OutcomeStatusType = 
+  | 'POSITIVE OUTCOME'
+  | 'NEUTRAL'
+  | 'NEGATIVE OUTCOME'
+  | 'INSUFFICIENT EVIDENCE';
+
+export type MeasurementConfidenceLevel = 'HIGH' | 'MEDIUM' | 'LOW';
+
+export type LearningStatusType = 
+  | 'VALIDATED'
+  | 'NEEDS REVIEW'
+  | 'MODEL REVIEW'
+  | 'BUSINESS EXECUTION ISSUE';
+
+export interface ActionPlanItem {
+  id: string;
+  recommendationId: string;
+  name: string;
+  objective: BusinessObjective;
+  areaId: string;
+  areaName: string;
+  owner: string;
+  businessUnit: string;
+  region: string;
+  startDate: string;
+  endDate: string;
+  budget: number;
+  budgetUsed: number;
+  targetCustomers: number;
+  contacted: number;
+  responded: number;
+  returned: number;
+  currentReturnRate: number;
+  targetReturnRate: number;
+  progress: number; // 0 - 100
+  status: RecommendationLifecycleStatus;
+  health: ExecutionHealthStatus;
+  baseline: {
+    period: string;
+    kpi: string;
+    value: string;
+  };
+  target: {
+    primaryKpi: string;
+    targetValue: string;
+    secondaryKpi: string;
+    measurementPeriod: string;
+  };
+  measurementMethod: MeasurementMethodType;
+  confidence: MeasurementConfidenceLevel;
+  notes?: string;
+}
+
+export interface PerformanceMeasurementItem {
+  id: string;
+  recommendationId: string;
+  actionId: string;
+  areaId: string;
+  areaName: string;
+  objective: BusinessObjective;
+  method: MeasurementMethodType;
+  confidence: MeasurementConfidenceLevel;
+  outcomeStatus: OutcomeStatusType;
+  baselineValue: string;
+  controlValue: string;
+  actualValue: string;
+  incrementalUplift: string;
+  treatmentConversion: number;
+  controlConversion: number;
+  incrementalCustomers: number;
+  averageTransactionValue: number;
+  incrementalRevenue: number;
+  cost: number;
+  netBenefit: number;
+  roi: number;
+  summary: string;
+  objectiveDetails: Record<string, any>;
+}
+
+export interface HistoricalOutcomeItem {
+  date: string;
+  objective: BusinessObjective;
+  recommendation: string;
+  action: string;
+  outcome: OutcomeStatusType;
+  uplift: string;
+  businessValue: string;
+  confidence: MeasurementConfidenceLevel;
+}
+
+export interface LearningItem {
+  id: string;
+  areaName: string;
+  areaId: string;
+  objective: BusinessObjective;
+  recommendationName: string;
+  predictedOpportunity: string;
+  actualOutcome: OutcomeStatusType;
+  upliftSummary: string;
+  incrementalRevenue: string;
+  status: LearningStatusType;
+  recommendationQuality: 'HIGH' | 'MEDIUM' | 'LOW';
+  executionCompletion: number; // percentage
+  businessOutcome: 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE' | 'INCONCLUSIVE';
+  systemInsight: string;
+  feedbackRuleUpdate: string;
+}
 
 export type UserRole =
   | 'Super Admin'

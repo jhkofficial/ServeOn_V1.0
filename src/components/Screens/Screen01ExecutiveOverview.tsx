@@ -19,7 +19,12 @@ import {
   Shield,
   ShieldAlert,
   UserPlus,
-  Network
+  Network,
+  PlayCircle,
+  Activity,
+  DollarSign,
+  RefreshCw,
+  Award
 } from 'lucide-react';
 
 interface Props {
@@ -286,6 +291,144 @@ export const Screen01ExecutiveOverview: React.FC<Props> = ({
               <span>Inspect Gate Criteria</span>
               <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* CLOSED-LOOP SERVEON BUSINESS IMPACT SECTION (Requested in Prompt) */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider font-mono">
+                CLOSED-LOOP DECISION INTELLIGENCE
+              </span>
+              <span className="text-slate-300">•</span>
+              <span className="text-xs font-bold text-slate-900">SERVEON Business Impact</span>
+            </div>
+            <h3 className="text-base font-extrabold text-slate-900 tracking-tight mt-0.5">
+              Quantified Operational Execution &amp; Commercial Returns
+            </h3>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onNavigate('business-value')}
+              className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            >
+              <DollarSign className="w-3.5 h-3.5 text-blue-700" />
+              <span>Full Value Breakdown</span>
+            </button>
+            <button
+              onClick={() => onNavigate('action-execution')}
+              className="px-3.5 py-1.5 rounded-lg bg-blue-900 hover:bg-blue-800 text-white text-xs font-bold uppercase tracking-wider shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <PlayCircle className="w-3.5 h-3.5" />
+              <span>Track Executions</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 4 KPI Impact Cards from Prompt */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div
+            onClick={() => onNavigate('action-execution')}
+            className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 hover:border-blue-300 transition-all cursor-pointer group"
+          >
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+              Active Actions
+            </span>
+            <div className="text-2xl font-black text-slate-900 mt-1 font-mono group-hover:text-blue-700 transition-colors">
+              14
+            </div>
+            <span className="text-[10px] text-blue-700 font-semibold flex items-center gap-1 mt-0.5">
+              <span>Underway in Field</span>
+              <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+            </span>
+          </div>
+
+          <div
+            onClick={() => onNavigate('performance-measurement')}
+            className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 hover:border-blue-300 transition-all cursor-pointer group"
+          >
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+              Measured Outcomes
+            </span>
+            <div className="text-2xl font-black text-slate-900 mt-1 font-mono group-hover:text-blue-700 transition-colors">
+              16
+            </div>
+            <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1 mt-0.5">
+              <span>Counterfactual Verified</span>
+              <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+            </span>
+          </div>
+
+          <div
+            onClick={() => onNavigate('business-value')}
+            className="p-3.5 rounded-xl bg-emerald-50/50 border border-emerald-200 hover:border-emerald-300 transition-all cursor-pointer group"
+          >
+            <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
+              Positive Outcome Rate
+            </span>
+            <div className="text-2xl font-black text-emerald-900 mt-1 font-mono">
+              75%
+            </div>
+            <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1 mt-0.5">
+              <span>12 of 16 Positive Uplift</span>
+              <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+            </span>
+          </div>
+
+          <div
+            onClick={() => onNavigate('business-value')}
+            className="p-3.5 rounded-xl bg-blue-900 text-white hover:bg-blue-800 transition-all cursor-pointer group shadow-2xs"
+          >
+            <span className="text-[10px] font-bold text-cyan-300 uppercase tracking-wider block font-mono">
+              Incremental Business Value
+            </span>
+            <div className="text-2xl font-black text-white mt-1 font-mono">
+              Rp2.4B
+            </div>
+            <span className="text-[10px] text-cyan-200 font-semibold flex items-center gap-1 mt-0.5">
+              <span>+205.7% Verified Net ROI</span>
+              <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+            </span>
+          </div>
+        </div>
+
+        {/* FROM INTELLIGENCE TO IMPACT Visual Journey */}
+        <div className="pt-2">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono">
+              FROM INTELLIGENCE TO IMPACT: COMPLETE CLOSED LOOP
+            </span>
+            <span className="text-[10px] text-slate-400">Click any pillar to inspect</span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 text-xs">
+            {[
+              { id: 'strategic-map', name: 'SEE', desc: 'Spatial Map', icon: MapPin },
+              { id: 'candidate-detail', name: 'UNDERSTAND', desc: 'District Profile', icon: Sparkles },
+              { id: 'recommendation', name: 'DECIDE', desc: 'Decision Support', icon: Award },
+              { id: 'action-execution', name: 'EXECUTE', desc: 'Field Action Plans', icon: PlayCircle },
+              { id: 'performance-measurement', name: 'MEASURE', desc: 'Uplift & Control', icon: Activity },
+              { id: 'learning-feedback', name: 'LEARN', desc: 'Model Feedback', icon: RefreshCw },
+            ].map((p) => {
+              const Icon = p.icon;
+              return (
+                <button
+                  key={p.name}
+                  onClick={() => onNavigate(p.id as ScreenId)}
+                  className="p-2.5 rounded-lg border border-slate-200 bg-slate-50/80 hover:bg-blue-50 hover:border-blue-300 transition-all text-left group cursor-pointer"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-bold text-[10px] text-blue-700">{p.name}</span>
+                    <Icon className="w-3 h-3 text-slate-400 group-hover:text-blue-600 transition-colors" />
+                  </div>
+                  <div className="text-[11px] font-bold text-slate-900 mt-1">{p.desc}</div>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
