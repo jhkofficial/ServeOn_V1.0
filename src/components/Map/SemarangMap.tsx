@@ -1,9 +1,28 @@
 import React, { useState } from 'react';
-import { AreaIntelligence, StrategicRole } from '../../types';
+import { AreaIntelligence } from '../../types';
 import { SEMARANG_AREAS } from '../../data/semarangData';
 import { SEMARANG_LANDMARKS } from '../../data/semarangPolygons';
 import { LeafletSemarangMap, MapTileStyle, ActiveMapLayer } from './LeafletSemarangMap';
-import { Layers, ZoomIn, ZoomOut, RotateCcw, MapPin, Shield, Info, Map as MapIcon, Globe, Compass, Grid } from 'lucide-react';
+import {
+  SpatialPatternMode,
+  HexMetricObjective,
+  SpatialHexCell,
+  getSemarangHexagons,
+} from '../../data/semarangHexagons';
+import {
+  Layers,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  MapPin,
+  Info,
+  Map as MapIcon,
+  Globe,
+  Compass,
+  Grid,
+  Hexagon,
+  Sparkles,
+} from 'lucide-react';
 
 export type MapBaseMode = 'tile' | 'vector';
 
@@ -18,6 +37,10 @@ interface SemarangMapProps {
   initialBaseMode?: MapBaseMode;
   initialTileStyle?: MapTileStyle;
   showTileSelector?: boolean;
+  initialSpatialPattern?: SpatialPatternMode;
+  initialHexMetric?: HexMetricObjective;
+  showPatternToggle?: boolean;
+  onSelectHex?: (hex: SpatialHexCell) => void;
 }
 
 export const SemarangMap: React.FC<SemarangMapProps> = ({
@@ -31,12 +54,22 @@ export const SemarangMap: React.FC<SemarangMapProps> = ({
   initialBaseMode = 'tile',
   initialTileStyle = 'positron',
   showTileSelector = true,
+  initialSpatialPattern = 'hexagonal',
+  initialHexMetric = 'COMPOSITE',
+  showPatternToggle = true,
+  onSelectHex,
 }) => {
   const safeAreas = Array.isArray(areas) && areas.length > 0 ? areas : SEMARANG_AREAS;
 
   const [internalLayer, setInternalLayer] = useState<ActiveMapLayer>(activeLayer || 'RETENTION');
   const [baseMode, setBaseMode] = useState<MapBaseMode>(initialBaseMode);
   const [tileStyle, setTileStyle] = useState<MapTileStyle>(initialTileStyle);
+  const [spatialPattern, setSpatialPattern] = useState<SpatialPatternMode>(initialSpatialPattern);
+  const [hexMetric, setHexMetric] = useState<HexMetricObjective>(initialHexMetric);
+  const [showDistrictOutlines, setShowDistrictOutlines] = useState<boolean>(true);
+  const [selectedHex, setSelectedHex] = useState<SpatialHexCell | null>(null);
+  const [hoveredHex, setHoveredHex] = useState<SpatialHexCell | null>(null);
+
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [hoveredArea, setHoveredArea] = useState<AreaIntelligence | null>(null);
@@ -50,9 +83,11 @@ export const SemarangMap: React.FC<SemarangMapProps> = ({
     }
   };
 
+  const hexagons = getSemarangHexagons(safeAreas);
+
   const getAreaFill = (area: AreaIntelligence, isHovered: boolean, isSelected: boolean) => {
     if (isSelected) {
-      return '#1d4ed8'; // Bold royal blue for selected focus
+      return '#1d4ed8'; // Royal blue for selected
     }
 
     if (currentLayer === 'ROLE') {
@@ -73,7 +108,7 @@ export const SemarangMap: React.FC<SemarangMapProps> = ({
 
     if (currentLayer === 'RETENTION') {
       const v = area.retentionOpportunityScore;
-      if (v >= 90) return '#1e1b4b'; // Deep Indigo (Highest retention urgency)
+      if (v >= 90) return '#1e1b4b'; // Deep Indigo (Highest priority)
       if (v >= 85) return '#1e3a8a'; // Dark Navy
       if (v >= 75) return '#2563eb'; // Blue
       if (v >= 65) return '#3b82f6'; // Medium Blue
@@ -108,20 +143,67 @@ export const SemarangMap: React.FC<SemarangMapProps> = ({
       return '#d1fae5';
     }
 
-    if (currentLayer === 'COVERAGE_GAP') {
-      const v = area.relativeCoverageGapScore;
-      if (v > 50) return '#581c87';
-      if (v > 35) return '#7c3aed';
-      if (v > 25) return '#8b5cf6';
-      if (v > 15) return '#a78bfa';
-      return '#ede9fe';
+    return '#2563eb';
+  };
+
+  const getHexColor = (hex: SpatialHexCell, metric: HexMetricObjective, isHovered: boolean) => {
+    if (metric === 'COMPOSITE') {
+      const s = hex.compositeScore;
+      if (s >= 85) return isHovered ? '#1e1b4b' : '#312e81';
+      if (s >= 75) return isHovered ? '#1e3a8a' : '#1d4ed8';
+      if (s >= 65) return isHovered ? '#2563eb' : '#3b82f6';
+      if (s >= 50) return isHovered ? '#0284c7' : '#0ea5e9';
+      if (s >= 35) return isHovered ? '#38bdf8' : '#7dd3fc';
+      return '#bae6fd';
     }
 
-    return '#94a3b8';
+    if (metric === 'RETENTION') {
+      const s = hex.retentionScore;
+      if (s >= 90) return isHovered ? '#1e1b4b' : '#312e81';
+      if (s >= 80) return isHovered ? '#1e3a8a' : '#1e40af';
+      if (s >= 70) return isHovered ? '#1d4ed8' : '#2563eb';
+      if (s >= 55) return isHovered ? '#2563eb' : '#60a5fa';
+      if (s >= 40) return isHovered ? '#60a5fa' : '#93c5fd';
+      return '#bfdbfe';
+    }
+
+    if (metric === 'CHURN_RISK') {
+      const r = hex.churnRiskRate;
+      if (r >= 18) return isHovered ? '#7f1d1d' : '#991b1b';
+      if (r >= 14) return isHovered ? '#991b1b' : '#dc2626';
+      if (r >= 10) return isHovered ? '#c2410c' : '#ea580c';
+      if (r >= 6) return isHovered ? '#d97706' : '#f59e0b';
+      return '#fde68a';
+    }
+
+    if (metric === 'DEFENSE') {
+      const s = hex.defenseScore;
+      if (s >= 80) return isHovered ? '#7f1d1d' : '#991b1b';
+      if (s >= 65) return isHovered ? '#c2410c' : '#ea580c';
+      if (s >= 50) return isHovered ? '#d97706' : '#f59e0b';
+      return '#fde68a';
+    }
+
+    if (metric === 'DOMINANT_ROLE') {
+      switch (hex.dominantObjective) {
+        case 'RETENTION':
+          return isHovered ? '#1e40af' : '#2563eb';
+        case 'DEFENSE':
+          return isHovered ? '#d97706' : '#f59e0b';
+        case 'ACQUISITION':
+          return isHovered ? '#059669' : '#10b981';
+        case 'EXPANSION':
+          return isHovered ? '#6d28d9' : '#8b5cf6';
+        default:
+          return '#64748b';
+      }
+    }
+
+    return '#2563eb';
   };
 
   const handleZoom = (delta: number) => {
-    setZoomLevel((prev) => Math.min(2.5, Math.max(0.8, Number((prev + delta).toFixed(1)))));
+    setZoomLevel((prev) => Math.min(Math.max(prev + delta, 0.8), 2.5));
   };
 
   const resetView = () => {
@@ -134,11 +216,113 @@ export const SemarangMap: React.FC<SemarangMapProps> = ({
       {/* Top Map Control Bar */}
       <div className="absolute top-2.5 left-2.5 right-2.5 z-10 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
         {/* Layer Selector & Basemap Mode */}
-        <div className="pointer-events-auto flex flex-wrap items-center gap-1.5 p-1 bg-white/95 backdrop-blur-md rounded-lg border border-slate-200 shadow-sm text-xs">
-          {/* Basemap Switcher */}
-          {showTileSelector && (
+        <div className="pointer-events-auto flex flex-wrap items-center gap-1.5 p-1 bg-white/95 backdrop-blur-md rounded-lg border border-slate-200 shadow-sm text-xs max-w-full">
+          {/* Spatial Pattern Switcher: Hexagonal vs Polygon */}
+          {showPatternToggle && (
             <div className="flex items-center gap-1 pr-1.5 border-r border-slate-200">
               <button
+                type="button"
+                onClick={() => setSpatialPattern('hexagonal')}
+                className={`flex items-center gap-1 px-2 py-1 rounded font-semibold text-[11px] transition-colors ${
+                  spatialPattern === 'hexagonal'
+                    ? 'bg-blue-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+                title="Pola spasial hexagonal H3 untuk analisis multi-objektif granular"
+              >
+                <Hexagon className="w-3 h-3 text-amber-400" />
+                <span>Pola Hexagonal</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSpatialPattern('polygon')}
+                className={`flex items-center gap-1 px-2 py-1 rounded font-semibold text-[11px] transition-colors ${
+                  spatialPattern === 'polygon'
+                    ? 'bg-slate-800 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+                title="Batas poligon administratif kecamatan"
+              >
+                <Layers className="w-3 h-3" />
+                <span>Batas Kecamatan</span>
+              </button>
+            </div>
+          )}
+
+          {/* Hexagonal Sub-Metric Selector */}
+          {spatialPattern === 'hexagonal' && (
+            <div className="flex items-center gap-1 pr-1.5 border-r border-slate-200">
+              <span className="text-[10px] font-bold text-slate-400 px-0.5">METRIK:</span>
+              <button
+                type="button"
+                onClick={() => setHexMetric('COMPOSITE')}
+                className={`px-1.5 py-0.5 rounded font-medium text-[10.5px] transition-colors ${
+                  hexMetric === 'COMPOSITE'
+                    ? 'bg-indigo-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+                title="Skor sintesis multi-objektif TOPSIS gabungan"
+              >
+                Composite
+              </button>
+              <button
+                type="button"
+                onClick={() => setHexMetric('RETENTION')}
+                className={`px-1.5 py-0.5 rounded font-medium text-[10.5px] transition-colors ${
+                  hexMetric === 'RETENTION'
+                    ? 'bg-blue-800 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+                title="Peluang & urgensi retensi pelanggan"
+              >
+                Retensi
+              </button>
+              <button
+                type="button"
+                onClick={() => setHexMetric('CHURN_RISK')}
+                className={`px-1.5 py-0.5 rounded font-medium text-[10.5px] transition-colors ${
+                  hexMetric === 'CHURN_RISK'
+                    ? 'bg-rose-700 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+                title="Kepadatan risiko churn"
+              >
+                Risiko Churn
+              </button>
+              <button
+                type="button"
+                onClick={() => setHexMetric('DOMINANT_ROLE')}
+                className={`px-1.5 py-0.5 rounded font-medium text-[10.5px] transition-colors ${
+                  hexMetric === 'DOMINANT_ROLE'
+                    ? 'bg-amber-800 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+                title="Sasaran prioritas utama per cell"
+              >
+                Objektif Utama
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowDistrictOutlines(!showDistrictOutlines)}
+                className={`px-1.5 py-0.5 rounded text-[10px] font-medium border transition-colors ${
+                  showDistrictOutlines
+                    ? 'bg-slate-100 border-slate-300 text-slate-800'
+                    : 'border-transparent text-slate-400 hover:bg-slate-50'
+                }`}
+                title="Tampilkan garis pembatas kecamatan"
+              >
+                {showDistrictOutlines ? '✓ Garis Batas' : 'Garis Batas'}
+              </button>
+            </div>
+          )}
+
+          {/* Basemap Switcher */}
+          {showTileSelector && (
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
                 onClick={() => {
                   setBaseMode('tile');
                   setTileStyle('positron');
@@ -148,13 +332,14 @@ export const SemarangMap: React.FC<SemarangMapProps> = ({
                     ? 'bg-blue-900 text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
-                title="Tampilkan peta jalan (Street Map)"
+                title="Peta jalan (Street Map)"
               >
                 <MapIcon className="w-3 h-3" />
                 <span>Peta Jalan</span>
               </button>
 
               <button
+                type="button"
                 onClick={() => {
                   setBaseMode('tile');
                   setTileStyle('satellite');
@@ -164,13 +349,14 @@ export const SemarangMap: React.FC<SemarangMapProps> = ({
                     ? 'bg-emerald-800 text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
-                title="Tampilkan foto satelit Semarang"
+                title="Foto satelit Semarang"
               >
                 <Globe className="w-3 h-3" />
                 <span>Satelit</span>
               </button>
 
               <button
+                type="button"
                 onClick={() => {
                   setBaseMode('tile');
                   setTileStyle('osm');
@@ -187,6 +373,7 @@ export const SemarangMap: React.FC<SemarangMapProps> = ({
               </button>
 
               <button
+                type="button"
                 onClick={() => setBaseMode('vector')}
                 className={`flex items-center gap-1 px-2 py-1 rounded font-semibold text-[11px] transition-colors ${
                   baseMode === 'vector'
@@ -201,14 +388,15 @@ export const SemarangMap: React.FC<SemarangMapProps> = ({
             </div>
           )}
 
-          {/* Choropleth Layer Selector */}
-          {!compact && (
-            <div className="flex items-center gap-1">
+          {/* Choropleth Layer Selector (Polygon mode only) */}
+          {!compact && spatialPattern === 'polygon' && (
+            <div className="flex items-center gap-1 pl-1.5 border-l border-slate-200">
               <span className="flex items-center gap-1 px-1 font-semibold text-slate-500 text-[10px]">
                 <Layers className="w-3 h-3 text-slate-500" />
                 LAYER:
               </span>
               <button
+                type="button"
                 onClick={() => setLayer('RETENTION')}
                 className={`px-2 py-0.5 rounded font-medium text-[11px] transition-colors ${
                   currentLayer === 'RETENTION'
@@ -219,6 +407,7 @@ export const SemarangMap: React.FC<SemarangMapProps> = ({
                 Retention
               </button>
               <button
+                type="button"
                 onClick={() => setLayer('ROLE')}
                 className={`px-2 py-0.5 rounded font-medium text-[11px] transition-colors ${
                   currentLayer === 'ROLE'
@@ -229,6 +418,7 @@ export const SemarangMap: React.FC<SemarangMapProps> = ({
                 Roles
               </button>
               <button
+                type="button"
                 onClick={() => setLayer('DENSITY')}
                 className={`px-2 py-0.5 rounded font-medium text-[11px] transition-colors ${
                   currentLayer === 'DENSITY'
@@ -238,26 +428,6 @@ export const SemarangMap: React.FC<SemarangMapProps> = ({
               >
                 Density
               </button>
-              <button
-                onClick={() => setLayer('COMPETITION')}
-                className={`px-2 py-0.5 rounded font-medium text-[11px] transition-colors ${
-                  currentLayer === 'COMPETITION'
-                    ? 'bg-amber-700 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`}
-              >
-                Competition
-              </button>
-              <button
-                onClick={() => setLayer('ACQUISITION')}
-                className={`px-2 py-0.5 rounded font-medium text-[11px] transition-colors ${
-                  currentLayer === 'ACQUISITION'
-                    ? 'bg-emerald-700 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`}
-              >
-                Acquisition
-              </button>
             </div>
           )}
         </div>
@@ -266,6 +436,7 @@ export const SemarangMap: React.FC<SemarangMapProps> = ({
         {baseMode === 'vector' && (
           <div className="pointer-events-auto flex items-center gap-1 p-1 bg-white/95 backdrop-blur-md rounded-lg border border-slate-200 shadow-sm">
             <button
+              type="button"
               onClick={() => handleZoom(0.2)}
               className="p-1 hover:bg-slate-100 rounded text-slate-700 hover:text-slate-900"
               title="Zoom in"
@@ -273,6 +444,7 @@ export const SemarangMap: React.FC<SemarangMapProps> = ({
               <ZoomIn className="w-3.5 h-3.5" />
             </button>
             <button
+              type="button"
               onClick={() => handleZoom(-0.2)}
               className="p-1 hover:bg-slate-100 rounded text-slate-700 hover:text-slate-900"
               title="Zoom out"
@@ -280,6 +452,7 @@ export const SemarangMap: React.FC<SemarangMapProps> = ({
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
             <button
+              type="button"
               onClick={resetView}
               className="p-1 hover:bg-slate-100 rounded text-slate-700 hover:text-slate-900"
               title="Reset view"
@@ -301,30 +474,34 @@ export const SemarangMap: React.FC<SemarangMapProps> = ({
             heightClass="h-full"
             tileStyle={tileStyle}
             showLandmarks={true}
+            spatialPattern={spatialPattern}
+            hexMetric={hexMetric}
+            showDistrictOutlines={showDistrictOutlines}
+            selectedHexId={selectedHex?.id || null}
+            onSelectHex={(hex) => {
+              setSelectedHex(hex);
+              if (onSelectHex) onSelectHex(hex);
+            }}
           />
         ) : (
-          /* Enriched SVG Map Canvas with Geographic Features (Coast, Highway, Rivers, Landmarks) */
-          <div className="w-full h-full relative cursor-grab active:cursor-grabbing overflow-hidden">
+          <div className="w-full h-full relative bg-slate-100 flex items-center justify-center select-none overflow-hidden">
             <svg
               viewBox="140 160 500 400"
-              className="w-full h-full object-contain select-none transition-transform duration-200"
+              className="w-full h-full max-h-full cursor-grab active:cursor-grabbing transition-transform duration-75"
               style={{
                 transform: `scale(${zoomLevel}) translate(${pan.x}px, ${pan.y}px)`,
               }}
             >
               <defs>
-                {/* Background Pattern */}
                 <pattern id="mapGrid" width="30" height="30" patternUnits="userSpaceOnUse">
-                  <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#e2e8f0" strokeWidth="0.5" strokeDasharray="1.5,1.5" />
+                  <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#e2e8f0" strokeWidth="0.5" />
                 </pattern>
 
-                {/* Sea Gradient */}
                 <linearGradient id="seaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
                   <stop offset="0%" stopColor="#bae6fd" stopOpacity="0.9" />
                   <stop offset="100%" stopColor="#e0f2fe" stopOpacity="0.8" />
                 </linearGradient>
 
-                {/* Land Topography Gradient */}
                 <linearGradient id="landGradient" x1="0%" y1="0%" x2="0%" y2="100%">
                   <stop offset="0%" stopColor="#f8fafc" />
                   <stop offset="100%" stopColor="#f1f5f9" />
@@ -351,113 +528,101 @@ export const SemarangMap: React.FC<SemarangMapProps> = ({
                 LAUT JAWA (JAVA SEA)
               </text>
 
-              {/* Tanjung Emas Port Pier structures */}
-              <rect x="420" y="185" width="22" height="15" fill="#94a3b8" rx="2" />
-              <rect x="446" y="180" width="12" height="20" fill="#94a3b8" rx="2" />
-              <text x="435" y="180" fill="#475569" fontSize="7" fontWeight="600" textAnchor="middle">Tj. Emas</text>
-
-              {/* Rivers: Kali Banjir Kanal Barat & Timur */}
-              <path
-                d="M 380 198 Q 385 280 395 350 T 400 450"
-                fill="none"
-                stroke="#7dd3fc"
-                strokeWidth="2"
-                strokeOpacity="0.7"
-              />
-              <path
-                d="M 465 210 Q 470 280 460 340 T 475 440"
-                fill="none"
-                stroke="#7dd3fc"
-                strokeWidth="2"
-                strokeOpacity="0.7"
-              />
-
-              {/* Arterial Highways: Tol Semarang-Batang & Tol Semarang-Solo */}
-              <path
-                d="M 140 290 Q 240 280 340 300 T 440 370 T 470 480"
-                fill="none"
-                stroke="#cbd5e1"
-                strokeWidth="3.5"
-                strokeLinecap="round"
-              />
-              <path
-                d="M 140 290 Q 240 280 340 300 T 440 370 T 470 480"
-                fill="none"
-                stroke="#f97316"
-                strokeWidth="1.5"
-                strokeDasharray="6,4"
-              />
-
-              {/* Ahmad Yani Airport Runway */}
-              <line x1="330" y1="260" x2="360" y2="285" stroke="#64748b" strokeWidth="3" strokeLinecap="round" />
-              <line x1="330" y1="260" x2="360" y2="285" stroke="#ffffff" strokeWidth="0.8" strokeDasharray="3,2" />
-              <text x="325" y="255" fill="#475569" fontSize="7" fontWeight="600">Bandara Ahmad Yani</text>
-
-              {/* Simpang Lima Roundabout representation */}
-              <circle cx="432" cy="335" r="5" fill="#ef4444" fillOpacity="0.2" stroke="#dc2626" strokeWidth="1" />
-
-              {/* District Polygons */}
-              {safeAreas.map((area) => {
-                const isSelected = area.id === selectedAreaId;
-                const isHovered = hoveredArea?.id === area.id;
-                const fillColor = getAreaFill(area, isHovered, isSelected);
-
-                return (
-                  <g key={area.id} className="transition-all duration-150">
-                    <path
-                      d={area.coordinates.svgPath}
-                      fill={fillColor}
-                      fillOpacity={isSelected ? 0.85 : 0.65}
-                      stroke={isSelected ? '#1e3a8a' : isHovered ? '#0f172a' : '#ffffff'}
-                      strokeWidth={isSelected ? '3.5' : isHovered ? '2' : '1.5'}
-                      strokeLinejoin="round"
-                      className="cursor-pointer transition-colors duration-150"
-                      onClick={() => onSelectArea(area.id)}
-                      onMouseEnter={() => setHoveredArea(area)}
-                      onMouseLeave={() => setHoveredArea(null)}
-                    />
-
-                    {/* District Label Tag */}
-                    <g
-                      transform={`translate(${area.coordinates.svgX}, ${area.coordinates.svgY})`}
-                      className="pointer-events-none select-none"
-                    >
-                      <rect
-                        x="-38"
-                        y="-9"
-                        width="76"
-                        height="18"
-                        rx="3"
-                        fill={isSelected ? '#1e3a8a' : '#0f172a'}
-                        fillOpacity={isSelected ? '0.95' : '0.8'}
+              {/* Hexagonal Grid or District Polygons in Vector Mode */}
+              {spatialPattern === 'hexagonal' ? (
+                <g>
+                  {/* District outlines wireframe if enabled */}
+                  {showDistrictOutlines &&
+                    safeAreas.map((area) => (
+                      <path
+                        key={`outline-${area.id}`}
+                        d={area.coordinates.svgPath}
+                        fill="none"
+                        stroke={area.id === selectedAreaId ? '#1e3a8a' : '#475569'}
+                        strokeWidth={area.id === selectedAreaId ? 2.5 : 1.2}
+                        strokeDasharray={area.id === selectedAreaId ? '4,2' : '2,3'}
+                        opacity={area.id === selectedAreaId ? 0.9 : 0.4}
                       />
-                      <text
-                        x="0"
-                        y="3"
-                        textAnchor="middle"
-                        fill="#ffffff"
-                        fontSize="8.5"
-                        fontWeight="700"
-                        fontFamily="Plus Jakarta Sans, sans-serif"
+                    ))}
+
+                  {/* Render Hexagons */}
+                  {hexagons.map((hex) => {
+                    const isParentSelected = hex.areaId === selectedAreaId;
+                    const isHexSelected = selectedHex?.id === hex.id;
+                    const fillColor = getHexColor(hex, hexMetric, hoveredHex?.id === hex.id);
+
+                    return (
+                      <polygon
+                        key={hex.id}
+                        points={hex.svgPoints}
+                        fill={fillColor}
+                        fillOpacity={isHexSelected ? 0.9 : isParentSelected ? 0.75 : 0.6}
+                        stroke={isHexSelected ? '#f59e0b' : isParentSelected ? '#1d4ed8' : '#ffffff'}
+                        strokeWidth={isHexSelected ? 3 : isParentSelected ? 1.5 : 0.6}
+                        className="cursor-pointer transition-colors duration-150"
+                        onClick={() => {
+                          setSelectedHex(hex);
+                          onSelectArea(hex.areaId);
+                          if (onSelectHex) onSelectHex(hex);
+                        }}
+                        onMouseEnter={() => setHoveredHex(hex)}
+                        onMouseLeave={() => setHoveredHex(null)}
+                      />
+                    );
+                  })}
+                </g>
+              ) : (
+                /* Standard District Polygons */
+                safeAreas.map((area) => {
+                  const isSelected = area.id === selectedAreaId;
+                  const isHovered = hoveredArea?.id === area.id;
+                  const fillColor = getAreaFill(area, isHovered, isSelected);
+
+                  return (
+                    <g key={area.id} className="transition-all duration-150">
+                      <path
+                        d={area.coordinates.svgPath}
+                        fill={fillColor}
+                        fillOpacity={isSelected ? 0.85 : 0.65}
+                        stroke={isSelected ? '#1e3a8a' : isHovered ? '#0f172a' : '#ffffff'}
+                        strokeWidth={isSelected ? '3.5' : isHovered ? '2' : '1.5'}
+                        strokeLinejoin="round"
+                        className="cursor-pointer transition-colors duration-150"
+                        onClick={() => onSelectArea(area.id)}
+                        onMouseEnter={() => setHoveredArea(area)}
+                        onMouseLeave={() => setHoveredArea(null)}
+                      />
+
+                      {/* District Label Tag */}
+                      <g
+                        transform={`translate(${area.coordinates.svgX}, ${area.coordinates.svgY})`}
+                        className="pointer-events-none select-none"
                       >
-                        {area.name.replace('Semarang ', 'SMG ')}
-                      </text>
+                        <rect
+                          x="-38"
+                          y="-9"
+                          width="76"
+                          height="18"
+                          rx="3"
+                          fill={isSelected ? '#1e3a8a' : '#0f172a'}
+                          fillOpacity={isSelected ? '0.95' : '0.8'}
+                        />
+                        <text
+                          x="0"
+                          y="3"
+                          textAnchor="middle"
+                          fill="#ffffff"
+                          fontSize="8.5"
+                          fontWeight="700"
+                          fontFamily="Plus Jakarta Sans, sans-serif"
+                        >
+                          {area.name.replace('Semarang ', 'SMG ')}
+                        </text>
+                      </g>
                     </g>
-
-                    {/* Active Focus Pin */}
-                    {isSelected && (
-                      <circle
-                        cx={area.coordinates.svgX}
-                        cy={area.coordinates.svgY - 13}
-                        r="4"
-                        fill="#ef4444"
-                        stroke="#ffffff"
-                        strokeWidth="1.5"
-                      />
-                    )}
-                  </g>
-                );
-              })}
+                  );
+                })
+              )}
 
               {/* Landmarks on SVG Map */}
               {SEMARANG_LANDMARKS.map((lm) => (
@@ -467,66 +632,58 @@ export const SemarangMap: React.FC<SemarangMapProps> = ({
                 </g>
               ))}
             </svg>
-
-            {/* Floating Tooltip in Vector Mode */}
-            {hoveredArea && (
-              <div
-                className="absolute z-20 pointer-events-none rounded-lg bg-slate-900/95 text-white p-2.5 shadow-xl border border-slate-700 text-xs w-56 animate-in fade-in duration-150"
-                style={{
-                  bottom: '16px',
-                  left: '16px',
-                }}
-              >
-                <div className="flex items-center justify-between border-b border-slate-700/80 pb-1.5 mb-1.5">
-                  <span className="font-bold text-sm text-white">{hoveredArea.name}</span>
-                  <span
-                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                      hoveredArea.strategicRole === 'PROTECT'
-                        ? 'bg-blue-500/30 text-blue-300'
-                        : hoveredArea.strategicRole === 'DEFEND'
-                        ? 'bg-amber-500/30 text-amber-300'
-                        : hoveredArea.strategicRole === 'ACQUIRE'
-                        ? 'bg-emerald-500/30 text-emerald-300'
-                        : 'bg-slate-700 text-slate-300'
-                    }`}
-                  >
-                    {hoveredArea.strategicRole}
-                  </span>
-                </div>
-
-                <div className="space-y-1 text-[11px] text-slate-300">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Retention Opportunity:</span>
-                    <span className="font-mono font-bold text-blue-300">{hoveredArea.retentionOpportunityScore}/100</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Churn Risk Accounts:</span>
-                    <span className="font-mono font-semibold text-rose-300">{hoveredArea.churnRiskCount.toLocaleString()} ({hoveredArea.churnRiskPercent}%)</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Retention Rank:</span>
-                    <span className="font-mono font-medium text-white">#{hoveredArea.objectives.retention.rank}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Customer Count:</span>
-                    <span className="font-mono font-medium text-slate-200">{hoveredArea.customerCount.toLocaleString()}</span>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         )}
       </div>
 
-      {/* Bottom Map Legend Bar */}
+      {/* Bottom Map Legend & Multi-Objective Status Bar */}
       <div className="bg-white border-t border-slate-200 px-3.5 py-2 flex flex-wrap items-center justify-between gap-2 text-xs">
         <div className="flex items-center gap-3">
           <span className="font-semibold text-slate-700 flex items-center gap-1 text-[11px]">
             <Info className="w-3.5 h-3.5 text-slate-500" />
-            Legend:
+            {spatialPattern === 'hexagonal' ? 'Hex Legend:' : 'Legend:'}
           </span>
 
-          {currentLayer === 'RETENTION' ? (
+          {spatialPattern === 'hexagonal' ? (
+            hexMetric === 'COMPOSITE' ? (
+              <div className="flex items-center gap-2 text-[11px]">
+                <span className="text-slate-500">Prioritas Standar (35)</span>
+                <div className="w-24 sm:w-32 h-2.5 rounded-full bg-gradient-to-r from-sky-200 via-blue-500 to-indigo-950" />
+                <span className="text-slate-900 font-bold">Multi-Objective Tertinggi (85-100)</span>
+              </div>
+            ) : hexMetric === 'RETENTION' ? (
+              <div className="flex items-center gap-2 text-[11px]">
+                <span className="text-slate-500">Rendah</span>
+                <div className="w-24 sm:w-32 h-2.5 rounded-full bg-gradient-to-r from-blue-200 via-blue-600 to-indigo-950" />
+                <span className="text-blue-900 font-bold">Urgensi Retensi Tertinggi</span>
+              </div>
+            ) : hexMetric === 'CHURN_RISK' ? (
+              <div className="flex items-center gap-2 text-[11px]">
+                <span className="text-slate-500">&lt;6% Churn</span>
+                <div className="w-24 sm:w-32 h-2.5 rounded-full bg-gradient-to-r from-amber-200 via-orange-500 to-red-800" />
+                <span className="text-red-900 font-bold">&gt;18% Churn Risk Tinggi</span>
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-center gap-2 text-[10.5px]">
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-xs bg-blue-600" />
+                  <span className="text-slate-600">Retensi</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-xs bg-amber-500" />
+                  <span className="text-slate-600">Defend</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-xs bg-emerald-500" />
+                  <span className="text-slate-600">Akuisisi</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-xs bg-purple-500" />
+                  <span className="text-slate-600">Ekspansi</span>
+                </span>
+              </div>
+            )
+          ) : currentLayer === 'RETENTION' ? (
             <div className="flex items-center gap-2 text-[11px]">
               <span className="text-slate-500">Low Urgency</span>
               <div className="w-20 sm:w-28 h-2.5 rounded-full bg-gradient-to-r from-sky-200 via-blue-600 to-indigo-950" />
@@ -550,10 +707,6 @@ export const SemarangMap: React.FC<SemarangMapProps> = ({
                 <span className="w-2.5 h-2.5 rounded-xs bg-purple-500" />
                 <span className="text-slate-600 font-medium">EXPAND</span>
               </span>
-              <span className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-xs bg-slate-400" />
-                <span className="text-slate-600 font-medium">MONITOR</span>
-              </span>
             </div>
           ) : (
             <div className="flex items-center gap-2 text-[11px]">
@@ -564,10 +717,23 @@ export const SemarangMap: React.FC<SemarangMapProps> = ({
           )}
         </div>
 
-        <div className="text-[11px] text-slate-500 flex items-center gap-1">
-          <MapPin className="w-3 h-3 text-blue-600" />
-          <span>Klik kecamatan pada peta untuk fokus detail &amp; rekomendasi</span>
-        </div>
+        {/* Selected or Hovered Hexagon Quick Directive */}
+        {(selectedHex || hoveredHex) && spatialPattern === 'hexagonal' ? (
+          <div className="text-[11px] text-slate-700 flex items-center gap-1.5 bg-blue-50/80 px-2 py-0.5 rounded border border-blue-200 font-medium">
+            <Sparkles className="w-3 h-3 text-amber-500 shrink-0" />
+            <span className="font-bold text-slate-900">
+              {(hoveredHex || selectedHex)?.zoneName}:
+            </span>
+            <span className="text-slate-600 truncate max-w-[280px]">
+              {(hoveredHex || selectedHex)?.primaryRecommendation}
+            </span>
+          </div>
+        ) : (
+          <div className="text-[11px] text-slate-500 flex items-center gap-1">
+            <MapPin className="w-3 h-3 text-blue-600" />
+            <span>Klik cell hexagonal pada peta untuk fokus detail area</span>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -12,6 +12,10 @@ import {
   Award,
   ChevronRight,
   Info,
+  Users,
+  KeyRound,
+  ClipboardList,
+  Sliders,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -115,6 +119,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
           icon: Award,
           badge: 'Action',
           badgeColor: 'blue',
+        },
+      ],
+    },
+    {
+      group: 'GOVERN',
+      items: [
+        {
+          id: 'user-management' as ScreenId,
+          label: 'User Management',
+          icon: Users,
+          badge: '48 Users',
+        },
+        {
+          id: 'role-permission' as ScreenId,
+          label: 'Role & Permission',
+          icon: KeyRound,
+          badge: '8 Roles',
+        },
+        {
+          id: 'audit-log' as ScreenId,
+          label: 'Audit Log',
+          icon: ClipboardList,
+          badge: 'Live',
+          badgeColor: 'emerald',
+        },
+        {
+          id: 'application-settings' as ScreenId,
+          label: 'Application Settings',
+          icon: Sliders,
         },
       ],
     },

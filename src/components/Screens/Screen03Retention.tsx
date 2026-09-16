@@ -5,17 +5,19 @@ import { KpiCard } from '../Common/KpiCard';
 import { StrategicRoleBadge } from '../Common/StrategicRoleBadge';
 import { SemarangMap } from '../Map/SemarangMap';
 import { ScoreBar } from '../Common/ScoreBar';
-import { 
-  Shield, 
-  AlertTriangle, 
-  Users, 
-  DollarSign, 
-  Target, 
-  ArrowRight, 
-  Sparkles, 
+import { SpatialHexCell } from '../../data/semarangHexagons';
+import {
+  Shield,
+  AlertTriangle,
+  Users,
+  DollarSign,
+  Target,
+  ArrowRight,
+  Sparkles,
   CheckCircle2,
   ChevronRight,
-  Info
+  Info,
+  Hexagon,
 } from 'lucide-react';
 
 interface Props {
@@ -32,6 +34,7 @@ export const Screen03Retention: React.FC<Props> = ({
   onNavigate,
 }) => {
   const safeAreas = areas && areas.length > 0 ? areas : SEMARANG_AREAS;
+  const [focusedHex, setFocusedHex] = useState<SpatialHexCell | null>(null);
 
   // Sort areas by Retention Rank
   const retentionRankings = [...safeAreas].sort(
@@ -58,65 +61,73 @@ export const Screen03Retention: React.FC<Props> = ({
             Who and where should we protect?
           </h1>
           <p className="text-sm text-slate-600 mt-1 max-w-3xl">
-            Prioritizing business recall and revenue protection: identifying dense, high-margin customer bases facing aggressive competitor poaching before churn accelerates.
+            Identifikasi wilayah &amp; mikro-klaster pelanggan rentan churn di Kota Semarang. 
+            Prioritaskan alokasi retensi pada area berdensitas tinggi dengan kontribusi ARPU terbesar.
           </p>
         </div>
 
-        <button
-          onClick={() => onNavigate('recommendation', selectedArea.id)}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold shadow-xs transition-colors shrink-0"
-        >
-          <span>View Retention Recommendation</span>
-          <ArrowRight className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            onClick={() => onNavigate('defend')}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium text-xs shadow-2xs transition-colors"
+          >
+            Next: Defend Objective
+            <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+          </button>
+        </div>
       </div>
 
-      {/* KPI Row (Block 1) */}
+      {/* Top 4 KPI Cards (Block 1) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
-          label="High Risk Customers"
-          value={totalHighRiskCustomers.toLocaleString()}
-          subValue="Across 16 districts"
-          trend={{ value: '11.2%', direction: 'down', label: 'Average Churn Rate' }}
-          icon={Users}
-          badge={{ text: 'Action Needed', variant: 'red' }}
+          label="Retention Priority Leader"
+          value={retentionRankings[0]?.name || 'Semarang Selatan'}
+          subtitle={`Rank #1 • Score ${retentionRankings[0]?.objectives.retention.score}/100`}
+          trend={{ value: 'Highest Risk-Value', isPositive: false }}
+          accent="blue"
         />
         <KpiCard
-          label="High Value at Risk"
-          value="IDR 14.8B"
-          subValue="Annualized Revenue Exposure"
-          trend={{ value: 'VIP ARPU Focus', direction: 'neutral' }}
-          icon={DollarSign}
+          label="Total At-Risk Customers"
+          value={`${totalHighRiskCustomers.toLocaleString()} accounts`}
+          subtitle="Top 3 districts account for 48% of total risk"
+          trend={{ value: '+4.2% MoM', isPositive: false }}
+          accent="amber"
         />
         <KpiCard
-          label="Eligible Retention Areas"
-          value="16 Areas"
-          subValue="Ranked by Retention Score"
-          icon={Target}
-          badge={{ text: 'Full Audit', variant: 'blue' }}
+          label="Avg. Retention Score"
+          value="68.4 / 100"
+          subtitle="Evaluated across 16 Semarang districts"
+          accent="slate"
         />
         <KpiCard
-          label="Model Business Recall"
-          value="89.2%"
-          subValue="Champion Model V2.1"
-          trend={{ value: '+4.1% over V2.0', direction: 'up' }}
-          tooltip="SERVEON prioritizes customer recall over vanity precision to avoid false negative churn blindspots."
-          badge={{ text: 'High Recall', variant: 'emerald' }}
+          label="Protected Revenue Value"
+          value="Rp 18.4 M / mo"
+          subtitle="Potential monthly recurring revenue safeguarded"
+          trend={{ value: 'Target: 85% saved', isPositive: true }}
+          accent="emerald"
         />
       </div>
 
-      {/* Main Visual: Map + Why Panel */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      {/* Map + Action Blueprint (Block 2) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Retention Map (7 Cols) */}
         <div className="lg:col-span-7 bg-white rounded-xl border border-slate-200 p-4 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
             <div>
-              <h3 className="font-bold text-slate-900 text-sm">Retention Risk &amp; Opportunity Map</h3>
-              <p className="text-xs text-slate-500">Peta Semarang dengan gradasi retensi: area gelap menandakan urgensi penyelamatan tertinggi</p>
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-slate-900 text-sm">Retention Risk &amp; Opportunity Map</h3>
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200">
+                  <Hexagon className="w-3 h-3 text-amber-500" />
+                  Pola Spasial Hexagonal
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Grid heksagonal multi-objektif mikro-sel (~860m): area indigo gelap menandakan urgensi penyelamatan retensi tertinggi
+              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200">
-                Layer: Retention Opportunity &amp; Churn Risk
+            <div className="flex items-center gap-1.5 self-start sm:self-auto">
+              <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+                Basemap + Hex Grid
               </span>
             </div>
           </div>
@@ -130,14 +141,35 @@ export const Screen03Retention: React.FC<Props> = ({
               heightClass="h-[430px]"
               initialBaseMode="tile"
               initialTileStyle="positron"
+              initialSpatialPattern="hexagonal"
+              initialHexMetric="RETENTION"
+              showPatternToggle={true}
+              onSelectHex={(hex) => setFocusedHex(hex)}
             />
           </div>
 
-          <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-            <span>Currently focused: <strong className="text-slate-900">{selectedArea.name}</strong> (Rank #{selectedArea.objectives.retention.rank})</span>
+          {/* Micro-cell / District Focus Bar */}
+          <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
+            {focusedHex ? (
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1 font-bold text-blue-900">
+                  <Hexagon className="w-3.5 h-3.5 text-blue-600" />
+                  Cell {focusedHex.id} ({focusedHex.zoneName}):
+                </span>
+                <span className="text-slate-600">
+                  Retensi <strong className="text-slate-900 font-mono">{focusedHex.retentionScore}/100</strong> • 
+                  Risiko Churn <strong className="text-rose-700 font-mono">{focusedHex.churnRiskCount} akun ({focusedHex.churnRiskRate}%)</strong>
+                </span>
+              </div>
+            ) : (
+              <span>
+                Fokus Wilayah: <strong className="text-slate-900">{selectedArea.name}</strong> (Rank #{selectedArea.objectives.retention.rank})
+              </span>
+            )}
+
             <button
               onClick={() => onNavigate('candidate-detail', selectedArea.id)}
-              className="text-blue-700 font-semibold hover:underline"
+              className="text-blue-700 font-semibold hover:underline flex items-center gap-1"
             >
               Candidate Details →
             </button>
@@ -194,18 +226,35 @@ export const Screen03Retention: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Standardized Blueprint Action */}
-          <div className="mt-4 pt-3 border-t border-slate-200 bg-blue-50/50 p-3 rounded-lg border border-blue-100">
-            <span className="text-[10px] font-bold text-blue-900 uppercase tracking-wider block">
-              Recommended Blueprint Action
-            </span>
-            <div className="mt-1 font-bold text-slate-900 text-xs">
-              Targeted Retention Campaign + Customer Re-engagement + Service Experience Review
+          {/* Hexagonal Micro-Zone Recommendation or Standardized Blueprint Action */}
+          {focusedHex ? (
+            <div className="mt-4 pt-3 border-t border-slate-200 bg-amber-50/50 p-3 rounded-lg border border-amber-200">
+              <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-900 uppercase tracking-wider">
+                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                Rekomendasi Taktis Mikro-Cell ({focusedHex.zoneName})
+              </div>
+              <div className="mt-1 font-bold text-slate-900 text-xs">
+                {focusedHex.primaryRecommendation}
+              </div>
+              <p className="mt-1 text-[11px] text-slate-600">
+                Sasaran Utama: <span className="font-semibold text-slate-800">{focusedHex.dominantObjective}</span> • 
+                Composite Score: <span className="font-semibold text-slate-800 font-mono">{focusedHex.compositeScore}/100</span>.
+                Fokus intervensi langsung pada klaster radius 860 meter.
+              </p>
             </div>
-            <p className="mt-1 text-[11px] text-slate-600">
-              Focus field maintenance and VIP customer retention outreach on the top 15% revenue generating accounts.
-            </p>
-          </div>
+          ) : (
+            <div className="mt-4 pt-3 border-t border-slate-200 bg-blue-50/50 p-3 rounded-lg border border-blue-100">
+              <span className="text-[10px] font-bold text-blue-900 uppercase tracking-wider block">
+                Recommended Blueprint Action
+              </span>
+              <div className="mt-1 font-bold text-slate-900 text-xs">
+                Targeted Retention Campaign + Customer Re-engagement + Service Experience Review
+              </div>
+              <p className="mt-1 text-[11px] text-slate-600">
+                Focus field maintenance and VIP customer retention outreach on the top 15% revenue generating accounts.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

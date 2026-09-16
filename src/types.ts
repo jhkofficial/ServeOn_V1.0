@@ -3,6 +3,7 @@ export type StrategicRole = 'PROTECT' | 'DEFEND' | 'ACQUIRE' | 'EXPAND' | 'MONIT
 export type BusinessObjective = 'ALL' | 'RETENTION' | 'MARKET_DEFENSE' | 'ACQUISITION' | 'EXPANSION';
 
 export type ScreenId = 
+  | 'login'
   | 'executive-overview'
   | 'strategic-map'
   | 'retention'
@@ -11,7 +12,116 @@ export type ScreenId =
   | 'network-expansion'
   | 'candidate-detail'
   | 'explainability'
-  | 'recommendation';
+  | 'recommendation'
+  | 'user-management'
+  | 'role-permission'
+  | 'audit-log'
+  | 'application-settings';
+
+export type UserRole =
+  | 'Super Admin'
+  | 'Application Admin'
+  | 'Executive / Management'
+  | 'Regional Manager'
+  | 'Network Planning'
+  | 'CRM / Marketing'
+  | 'Data Analyst'
+  | 'Viewer';
+
+export type UserStatus = 'Active' | 'Inactive' | 'Pending';
+
+export interface PlatformUser {
+  id: string;
+  name: string;
+  email: string;
+  employeeId: string;
+  businessUnit: string;
+  jobTitle: string;
+  role: UserRole;
+  regionAccess: string[];
+  kabupatenAccess?: string[];
+  lastLogin: string;
+  status: UserStatus;
+  avatarInitials: string;
+  department?: string;
+  createdAt?: string;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  timestamp: string;
+  user: string;
+  userEmail?: string;
+  role: UserRole;
+  activity: string;
+  module: string;
+  region: string;
+  result: 'Success' | 'Reviewed' | 'Approved' | 'Failed' | 'Pending';
+  details?: string;
+  ipAddress?: string;
+}
+
+export interface RolePermissions {
+  role: UserRole;
+  description: string;
+  userCount: number;
+  permissions: {
+    overview: {
+      viewExecutiveOverview: boolean;
+    };
+    where: {
+      viewStrategicActionMap: boolean;
+      viewAllRegions: boolean;
+    };
+    protect: {
+      viewRetention: boolean;
+      viewMarketShareDefense: boolean;
+    };
+    grow: {
+      viewAcquisition: boolean;
+      viewNetworkExpansion: boolean;
+    };
+    understand: {
+      viewCandidateDetail: boolean;
+      viewExplainability: boolean;
+    };
+    decide: {
+      viewRecommendation: boolean;
+      approveRecommendation: boolean;
+    };
+    govern: {
+      manageUsers: boolean;
+      manageRoles: boolean;
+      viewAuditLogs: boolean;
+      manageApplicationSettings: boolean;
+    };
+  };
+}
+
+export interface ApplicationSettingsConfig {
+  general: {
+    applicationName: string;
+    environment: 'Production' | 'Pilot' | 'Staging' | 'Development';
+    defaultRegion: string;
+    defaultPeriod: string;
+  };
+  decisionIntelligence: {
+    frameworkVersion: string;
+    recommendationApproval: 'Human Approval Required' | 'Autonomous Mode' | 'Dual Sign-off';
+    evidenceConfidenceDisplay: 'Enabled' | 'Disabled';
+    topsisWeightPreset: string;
+  };
+  data: {
+    latestDataRefresh: string;
+    dataStatus: 'Validated' | 'Syncing' | 'Stale';
+    refreshCadence: string;
+  };
+  security: {
+    authenticationMethod: 'Corporate SSO' | 'MFA + Corporate Password' | 'LDAP/AD';
+    sessionTimeout: '15 minutes' | '30 minutes' | '60 minutes' | '8 hours';
+    auditLogging: 'Enabled' | 'Strict' | 'Disabled';
+  };
+}
 
 export interface ExpansionGate {
   marketPotentialPass: boolean;

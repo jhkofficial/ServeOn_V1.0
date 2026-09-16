@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { ScreenId, GlobalFilterState, AreaIntelligence, StrategicRole, BusinessObjective } from './types';
+import { ScreenId, GlobalFilterState, AreaIntelligence, StrategicRole, BusinessObjective, UserRole } from './types';
 import { SEMARANG_AREAS, getAreaById, EXECUTIVE_KPI_SUMMARY } from './data/semarangData';
 import { Header } from './components/Navigation/Header';
 import { Sidebar } from './components/Navigation/Sidebar';
 
-// 9 Core Screens
+// 9 Core Intelligence Screens
 import { Screen01ExecutiveOverview } from './components/Screens/Screen01ExecutiveOverview';
 import { Screen02StrategicActionMap } from './components/Screens/Screen02StrategicActionMap';
 import { Screen03Retention } from './components/Screens/Screen03Retention';
@@ -15,7 +15,27 @@ import { Screen07CandidateDetail } from './components/Screens/Screen07CandidateD
 import { Screen08Explainability } from './components/Screens/Screen08Explainability';
 import { Screen09Recommendation } from './components/Screens/Screen09Recommendation';
 
+// Governance & Authentication Screens
+import { ScreenLogin } from './components/Screens/ScreenLogin';
+import { ScreenUserManagement } from './components/Screens/ScreenUserManagement';
+import { ScreenRolePermission } from './components/Screens/ScreenRolePermission';
+import { ScreenAuditLog } from './components/Screens/ScreenAuditLog';
+import { ScreenApplicationSettings } from './components/Screens/ScreenApplicationSettings';
+
 export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
+  const [currentUser, setCurrentUser] = useState<{
+    name: string;
+    email: string;
+    role: UserRole;
+    title: string;
+  }>({
+    name: 'Johanes Harindrias',
+    email: 'johanes@company.com',
+    role: 'Application Admin',
+    title: 'Regional Strategy Lead',
+  });
+
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('executive-overview');
   const [selectedAreaId, setSelectedAreaId] = useState<string>('semarang-selatan');
 
@@ -35,6 +55,29 @@ export default function App() {
       setFilters((prev) => ({ ...prev, selectedKecamatanId: areaId }));
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleLoginSuccess = (user: { name: string; email: string; role: UserRole; title?: string }) => {
+    setCurrentUser({
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      title: user.title || 'Enterprise User',
+    });
+    setIsLoggedIn(true);
+    setCurrentScreen('executive-overview');
+  };
+
+  const handleSignOut = () => {
+    setIsLoggedIn(false);
+    setCurrentScreen('login');
+  };
+
+  const handleRoleChange = (newRole: UserRole) => {
+    setCurrentUser((prev) => ({
+      ...prev,
+      role: newRole,
+    }));
   };
 
   const handleFilterChange = (newFilters: Partial<GlobalFilterState>) => {
@@ -73,6 +116,11 @@ export default function App() {
 
   const selectedArea = getAreaById(selectedAreaId) || SEMARANG_AREAS[0];
 
+  // If user is logged out or viewing login screen
+  if (!isLoggedIn || currentScreen === 'login') {
+    return <ScreenLogin onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans antialiased selection:bg-blue-100 selection:text-blue-900">
       {/* Global Application Header */}
@@ -83,6 +131,9 @@ export default function App() {
         onResetFilters={handleResetFilters}
         areas={SEMARANG_AREAS}
         onNavigate={handleNavigate}
+        currentUser={currentUser}
+        onSignOut={handleSignOut}
+        onRoleChange={handleRoleChange}
       />
 
       {/* Main Layout Body */}
@@ -97,6 +148,29 @@ export default function App() {
 
         {/* Scrollable Screen Content Container */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+          {/* Read-Only Notice for Viewer Role */}
+          {currentUser.role === 'Viewer' && (
+            <div className="mb-4 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="font-bold">VIEWER MODE:</span>
+                <span>You have read-only access. Modification of strategic policies or user accounts is restricted.</span>
+              </div>
+              <span className="font-mono text-[10.5px] uppercase font-bold text-amber-700">Audit Active</span>
+            </div>
+          )}
+
+          {/* Regional Manager Restricted Notice */}
+          {currentUser.role === 'Regional Manager' && (
+            <div className="mb-4 p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="font-bold">REGIONAL MANAGER CLEARANCE:</span>
+                <span>Territory restricted to assigned jurisdiction: Jawa Tengah (Kota Semarang).</span>
+              </div>
+              <span className="font-mono text-[10.5px] uppercase font-bold text-blue-700">Region Enforced</span>
+            </div>
+          )}
+
+          {/* OVERVIEW */}
           {currentScreen === 'executive-overview' && (
             <Screen01ExecutiveOverview
               areas={filteredAreas}
@@ -106,6 +180,7 @@ export default function App() {
             />
           )}
 
+          {/* WHERE */}
           {currentScreen === 'strategic-map' && (
             <Screen02StrategicActionMap
               areas={filteredAreas}
@@ -115,6 +190,7 @@ export default function App() {
             />
           )}
 
+          {/* PROTECT */}
           {currentScreen === 'retention' && (
             <Screen03Retention
               areas={filteredAreas}
@@ -133,6 +209,7 @@ export default function App() {
             />
           )}
 
+          {/* GROW */}
           {currentScreen === 'acquisition' && (
             <Screen05NewCustomerAcquisition
               areas={filteredAreas}
@@ -151,6 +228,7 @@ export default function App() {
             />
           )}
 
+          {/* UNDERSTAND */}
           {currentScreen === 'candidate-detail' && (
             <Screen07CandidateDetail
               areas={filteredAreas}
@@ -169,6 +247,7 @@ export default function App() {
             />
           )}
 
+          {/* DECIDE */}
           {currentScreen === 'recommendation' && (
             <Screen09Recommendation
               areas={filteredAreas}
@@ -176,6 +255,23 @@ export default function App() {
               onSelectArea={setSelectedAreaId}
               onNavigate={handleNavigate}
             />
+          )}
+
+          {/* GOVERN */}
+          {currentScreen === 'user-management' && (
+            <ScreenUserManagement />
+          )}
+
+          {currentScreen === 'role-permission' && (
+            <ScreenRolePermission />
+          )}
+
+          {currentScreen === 'audit-log' && (
+            <ScreenAuditLog />
+          )}
+
+          {currentScreen === 'application-settings' && (
+            <ScreenApplicationSettings />
           )}
         </main>
       </div>
