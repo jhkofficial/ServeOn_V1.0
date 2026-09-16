@@ -1,0 +1,7 @@
+{
+  "name": "SERVEON",
+  "description": "Customer-Centric Location & Network Decision Intelligence Platform that transforms customer, location, market, network, and behavioral data into explainable recommendations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
