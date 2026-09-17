@@ -4,6 +4,7 @@ import { KpiCard } from '../Common/KpiCard';
 import { StrategicRoleBadge } from '../Common/StrategicRoleBadge';
 import { SemarangMap } from '../Map/SemarangMap';
 import { EXECUTIVE_KPI_SUMMARY, getTopRankedArea, SEMARANG_AREAS } from '../../data/semarangData';
+import { PORTFOLIO_IMPACT_SUMMARY } from '../../data/impactOutcomeData';
 import { 
   Users, 
   MapPin, 
@@ -535,6 +536,133 @@ export const Screen01ExecutiveOverview: React.FC<Props> = ({
               <span>Inspect Active Focus ({activeArea?.name})</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
+          </div>
+        </div>
+      </div>
+
+      {/* FROM RECOMMENDATION TO BUSINESS IMPACT (Closed-Loop Evidence Section) */}
+      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider font-mono flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                CLOSED-LOOP PORTFOLIO EVIDENCE
+              </span>
+              <span className="text-slate-300">•</span>
+              <span className="text-xs text-slate-500 font-medium">90-Day Post-Intervention Evaluation</span>
+            </div>
+            <h2 className="text-lg font-bold text-slate-900 tracking-tight mt-0.5">
+              From Recommendation to Business Impact
+            </h2>
+            <p className="text-xs text-slate-600 mt-0.5">
+              Empirical evidence proving whether SERVEON-recommended actions actually improved customer metrics and bottom-line value.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => onNavigate('business-value')}
+              className="px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-colors"
+            >
+              Portfolio ROI Breakdown
+            </button>
+            <button
+              onClick={() => onNavigate('impact-outcome-map')}
+              className="px-3 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
+            >
+              <Activity className="w-3.5 h-3.5" />
+              <span>Explore Impact &amp; Outcome Map</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 7 Impact KPIs */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+          <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Active Actions</span>
+            <div className="text-xl font-black text-slate-900 mt-1 font-mono">{PORTFOLIO_IMPACT_SUMMARY.activeActions}</div>
+            <span className="text-[10px] text-blue-700 font-semibold">12 In Progress</span>
+          </div>
+
+          <div className="p-3 rounded-lg bg-emerald-50/50 border border-emerald-200">
+            <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">Areas Improved</span>
+            <div className="text-xl font-black text-emerald-900 mt-1 font-mono">
+              {PORTFOLIO_IMPACT_SUMMARY.areasImproved} / {PORTFOLIO_IMPACT_SUMMARY.areasMeasured}
+            </div>
+            <span className="text-[10px] text-emerald-700 font-semibold">67% Uplift Rate</span>
+          </div>
+
+          <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Total Investment</span>
+            <div className="text-xl font-black text-slate-900 mt-1 font-mono">Rp4.8B</div>
+            <span className="text-[10px] text-slate-500">Planned: Rp5.2B</span>
+          </div>
+
+          <div className="p-3 rounded-lg bg-emerald-50/50 border border-emerald-200">
+            <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">Quantified Benefit</span>
+            <div className="text-xl font-black text-emerald-900 mt-1 font-mono">Rp7.2B</div>
+            <span className="text-[10px] text-emerald-700 font-semibold">Verified Revenue</span>
+          </div>
+
+          <div className="p-3 rounded-lg bg-emerald-50/70 border border-emerald-300">
+            <span className="text-[10px] font-bold text-emerald-900 uppercase tracking-wider block">Net Business Value</span>
+            <div className="text-xl font-black text-emerald-950 mt-1 font-mono">Rp2.4B</div>
+            <span className="text-[10px] text-emerald-800 font-bold">Benefit - Cost</span>
+          </div>
+
+          <div className="p-3 rounded-lg bg-blue-50/50 border border-blue-200">
+            <span className="text-[10px] font-bold text-blue-800 uppercase tracking-wider block">Portfolio ROI</span>
+            <div className="text-xl font-black text-blue-900 mt-1 font-mono">+{PORTFOLIO_IMPACT_SUMMARY.portfolioRoi}%</div>
+            <span className="text-[10px] text-blue-700 font-semibold">Net Yield</span>
+          </div>
+
+          <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-300">
+            <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">Positive Outcome</span>
+            <div className="text-xl font-black text-emerald-900 mt-1 font-mono">75%</div>
+            <span className="text-[10px] text-emerald-700 font-semibold">9 of 12 Areas</span>
+          </div>
+        </div>
+
+        {/* Compact Card: BEFORE vs AFTER Macro Performance */}
+        <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+            <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+              Before vs After • Macro Benchmark Across Measured Interventions
+            </span>
+            <span className="text-[10px] font-mono text-slate-500">Pilot Cohort (12 Districts)</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3">
+            <div className="p-3 rounded-lg bg-white border border-slate-200">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Customer Retention</span>
+              <div className="flex items-baseline gap-2 mt-1">
+                <span className="text-sm font-semibold text-slate-400 line-through">72%</span>
+                <span className="text-lg font-black text-emerald-800 font-mono">80%</span>
+                <span className="text-xs font-bold text-emerald-600 font-mono">(+8 ppt)</span>
+              </div>
+              <span className="text-[10px] text-slate-500 mt-0.5 block">Baseline 72% → Actual 80%</span>
+            </div>
+
+            <div className="p-3 rounded-lg bg-white border border-slate-200">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Network Coverage</span>
+              <div className="flex items-baseline gap-2 mt-1">
+                <span className="text-sm font-semibold text-slate-400 line-through">72%</span>
+                <span className="text-lg font-black text-purple-900 font-mono">91%</span>
+                <span className="text-xs font-bold text-purple-700 font-mono">(+19 ppt)</span>
+              </div>
+              <span className="text-[10px] text-slate-500 mt-0.5 block">Baseline 72% → Actual 91%</span>
+            </div>
+
+            <div className="p-3 rounded-lg bg-white border border-slate-200">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">New Customers</span>
+              <div className="flex items-baseline gap-2 mt-1">
+                <span className="text-sm font-semibold text-slate-400 line-through">10,000</span>
+                <span className="text-lg font-black text-blue-900 font-mono">10,700</span>
+                <span className="text-xs font-bold text-blue-700 font-mono">(+700)</span>
+              </div>
+              <span className="text-[10px] text-slate-500 mt-0.5 block">Baseline 10,000 → Actual 10,700</span>
+            </div>
           </div>
         </div>
       </div>

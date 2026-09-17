@@ -54,13 +54,22 @@ export const ScreenBusinessValue: React.FC<Props> = ({ onNavigate }) => {
 
         <div className="flex items-center gap-2">
           {onNavigate && (
-            <button
-              onClick={() => onNavigate('learning-feedback')}
-              className="px-3.5 py-2 rounded-lg bg-blue-900 hover:bg-blue-800 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-[0.99]"
-            >
-              <span>View Learning &amp; Feedback</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            <>
+              <button
+                onClick={() => onNavigate('impact-outcome-map')}
+                className="px-3.5 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+              >
+                <TrendingUp className="w-3.5 h-3.5" />
+                <span>Impact &amp; Outcome Map</span>
+              </button>
+              <button
+                onClick={() => onNavigate('learning-feedback')}
+                className="px-3.5 py-2 rounded-lg bg-blue-900 hover:bg-blue-800 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-[0.99]"
+              >
+                <span>Learning &amp; Feedback</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </>
           )}
         </div>
       </div>

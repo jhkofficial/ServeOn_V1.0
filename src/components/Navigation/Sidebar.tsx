@@ -139,6 +139,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           badgeColor: 'blue',
         },
         {
+          id: 'impact-outcome-map' as ScreenId,
+          label: 'Impact & Outcome Map',
+          icon: Activity,
+          badge: 'Evidence',
+          badgeColor: 'emerald',
+        },
+        {
           id: 'performance-measurement' as ScreenId,
           label: 'Performance Measurement',
           icon: BarChart3,

@@ -22,8 +22,9 @@ import { ScreenRolePermission } from './components/Screens/ScreenRolePermission'
 import { ScreenAuditLog } from './components/Screens/ScreenAuditLog';
 import { ScreenApplicationSettings } from './components/Screens/ScreenApplicationSettings';
 
-// Closed-Loop RESULT Pillars (Screens H, I, J, K)
+// Closed-Loop RESULT Pillars (Screens H, I, J, K + Impact Map)
 import { ScreenActionExecution } from './components/Screens/ScreenActionExecution';
+import { ScreenImpactOutcomeMap } from './components/Screens/ScreenImpactOutcomeMap';
 import { ScreenPerformanceMeasurement } from './components/Screens/ScreenPerformanceMeasurement';
 import { ScreenBusinessValue } from './components/Screens/ScreenBusinessValue';
 import { ScreenLearningFeedback } from './components/Screens/ScreenLearningFeedback';
@@ -268,6 +269,15 @@ export default function App() {
             <ScreenActionExecution
               onNavigate={handleNavigate}
               currentUserRole={currentUser.role}
+            />
+          )}
+
+          {currentScreen === 'impact-outcome-map' && (
+            <ScreenImpactOutcomeMap
+              areas={filteredAreas}
+              selectedAreaId={selectedAreaId}
+              onSelectArea={setSelectedAreaId}
+              onNavigate={handleNavigate}
             />
           )}
 

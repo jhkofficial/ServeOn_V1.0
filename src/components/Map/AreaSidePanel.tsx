@@ -4,7 +4,8 @@ import { StrategicRoleBadge } from '../Common/StrategicRoleBadge';
 import { ConfidenceIndicator } from '../Common/ConfidenceIndicator';
 import { ScoreBar } from '../Common/ScoreBar';
 import { HISTORICAL_OUTCOMES } from '../../data/executionData';
-import { ArrowRight, Sparkles, AlertTriangle, ShieldCheck, ChevronRight, X, Activity, CheckCircle2, History } from 'lucide-react';
+import { getAreaImpactDetail, OUTCOME_CATEGORY_STYLES } from '../../data/impactOutcomeData';
+import { ArrowRight, Sparkles, AlertTriangle, ShieldCheck, ChevronRight, X, Activity, CheckCircle2, History, DollarSign } from 'lucide-react';
 
 interface AreaSidePanelProps {
   area: AreaIntelligence;
@@ -153,56 +154,58 @@ export const AreaSidePanel: React.FC<AreaSidePanelProps> = ({ area, onNavigate, 
           </span>
         </div>
 
-        {/* PREVIOUS ACTION RESULT (Requested in Prompt) */}
+        {/* PREVIOUS SERVEON OUTCOME (Closed-Loop Evidence) */}
         {(() => {
-          const outcome = HISTORICAL_OUTCOMES.find((h) => h.areaId === area.id) || {
-            actionName: 'Area Strategic Stabilization Program',
-            outcomeStatus: 'POSITIVE OUTCOME',
-            metricUpliftSummary: '+5.4% efficiency vs control',
-            incrementalRevenue: 'Rp120,000,000',
-            evaluatedPeriod: 'Q2 2026',
-          };
+          const impact = getAreaImpactDetail(area.id);
+          const style = OUTCOME_CATEGORY_STYLES[impact.outcomeStatus];
 
           return (
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/90 space-y-2">
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1">
-                  <History className="w-3 h-3 text-blue-700" />
-                  PREVIOUS ACTION RESULT
+                  <Activity className="w-3 h-3 text-emerald-600" />
+                  PREVIOUS SERVEON OUTCOME
                 </span>
-                <span className={`px-2 py-0.5 rounded text-[9px] font-black tracking-wider uppercase ${
-                  outcome.outcomeStatus === 'POSITIVE OUTCOME'
-                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                    : outcome.outcomeStatus === 'INCONCLUSIVE'
-                    ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                    : 'bg-rose-100 text-rose-800 border border-rose-300'
-                }`}>
-                  {outcome.outcomeStatus}
+                <span className={`px-2 py-0.5 rounded text-[9px] font-black tracking-wider uppercase ${style.pillBg}`}>
+                  {impact.outcomeStatus}
                 </span>
               </div>
 
               <div className="text-[11px] font-bold text-slate-900 leading-snug">
-                {outcome.actionName}
+                {impact.actionName}
+              </div>
+
+              <div className="text-[10px] text-slate-500 font-mono">
+                Rec: <span className="font-bold text-blue-700">{impact.recommendationId}</span> • Execution: <strong className="text-slate-800">{impact.executionStatus}</strong>
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-[10px] pt-1">
                 <div className="bg-white p-2 rounded border border-slate-200">
-                  <span className="text-slate-500 block">Verified Uplift:</span>
-                  <span className="font-mono font-bold text-emerald-700">{outcome.metricUpliftSummary}</span>
+                  <span className="text-slate-500 block">Incremental Uplift:</span>
+                  <span className="font-mono font-bold text-emerald-700">+{impact.incrementalEffect} ppt</span>
                 </div>
                 <div className="bg-white p-2 rounded border border-slate-200">
-                  <span className="text-slate-500 block">Incremental Value:</span>
-                  <span className="font-mono font-bold text-blue-900">{outcome.incrementalRevenue}</span>
+                  <span className="text-slate-500 block">Net Value (ROI):</span>
+                  <span className="font-mono font-bold text-blue-900">Rp{(impact.netBusinessValue / 1000000).toFixed(0)}M (+{impact.roi}%)</span>
                 </div>
               </div>
 
-              <button
-                onClick={() => onNavigate('performance-measurement', area.id)}
-                className="w-full mt-1 py-1 px-2 rounded text-[10px] font-semibold text-blue-700 hover:bg-blue-50 transition-colors flex items-center justify-center gap-1 cursor-pointer"
-              >
-                <span>View Counterfactual Measurement</span>
-                <ChevronRight className="w-3 h-3" />
-              </button>
+              <div className="grid grid-cols-2 gap-1.5 pt-1">
+                <button
+                  onClick={() => onNavigate('impact-outcome-map', area.id)}
+                  className="py-1 px-2 rounded text-[10px] font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 transition-colors flex items-center justify-center gap-1 cursor-pointer border border-emerald-200"
+                >
+                  <Activity className="w-3 h-3" />
+                  <span>View Impact Details</span>
+                </button>
+                <button
+                  onClick={() => onNavigate('performance-measurement', area.id)}
+                  className="py-1 px-2 rounded text-[10px] font-semibold text-blue-700 hover:bg-blue-50 transition-colors flex items-center justify-center gap-1 cursor-pointer border border-slate-200"
+                >
+                  <span>Counterfactual</span>
+                  <ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
             </div>
           );
         })()}

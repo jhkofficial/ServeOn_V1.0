@@ -14,6 +14,7 @@ export type ScreenId =
   | 'explainability'
   | 'recommendation'
   | 'action-execution'
+  | 'impact-outcome-map'
   | 'performance-measurement'
   | 'business-value'
   | 'learning-feedback'
@@ -21,6 +22,151 @@ export type ScreenId =
   | 'role-permission'
   | 'audit-log'
   | 'application-settings';
+
+export type ImpactOutcomeCategory = 
+  | 'POSITIVE OUTCOME'
+  | 'PARTIAL IMPROVEMENT'
+  | 'NO MATERIAL CHANGE'
+  | 'NEGATIVE OUTCOME'
+  | 'INSUFFICIENT EVIDENCE';
+
+export type AreaConditionTrend = 
+  | 'SIGNIFICANTLY IMPROVED'
+  | 'IMPROVED'
+  | 'STABLE'
+  | 'DECLINED'
+  | 'SIGNIFICANTLY DECLINED';
+
+export type TargetVsActualStatus = 
+  | 'ABOVE TARGET'
+  | 'ON TARGET'
+  | 'BELOW TARGET'
+  | 'NO CHANGE'
+  | 'NOT MEASURED'
+  | 'WITHIN BUDGET';
+
+export interface TargetVsActualRow {
+  metric: string;
+  baseline: string;
+  target: string;
+  actual: string;
+  change: string;
+  achievementPct?: number;
+  status: TargetVsActualStatus;
+}
+
+export interface AreaImpactDetail {
+  areaId: string;
+  areaName: string;
+  areaCode: string;
+  city: string;
+  region: string;
+  recommendationId: string;
+  recommendationName: string;
+  objective: BusinessObjective;
+  strategicRole: StrategicRole;
+  actionName: string;
+  executionStatus: 'COMPLETED' | 'IN EXECUTION' | 'UNDER REVIEW';
+  executionProgress: number; // 0-100
+  beforeCondition: string;
+  afterCondition: string;
+  trend: AreaConditionTrend;
+  outcomeStatus: ImpactOutcomeCategory;
+  beforePeriod: string;
+  afterPeriod: string;
+  targetAchievementPct: number;
+  treatmentBefore: number;
+  treatmentAfter: number;
+  treatmentChange: number;
+  controlBefore: number;
+  controlAfter: number;
+  controlChange: number;
+  incrementalEffect: number;
+  incrementalUnit: string;
+  measurementMethod: MeasurementMethodType;
+  measurementConfidence: MeasurementConfidenceLevel;
+  confidenceScore: number;
+  plannedInvestment: number;
+  actualInvestment: number;
+  businessBenefit: number;
+  netBusinessValue: number;
+  roi: number;
+  targetVsActualRows: TargetVsActualRow[];
+  timeline: {
+    date: string;
+    title: string;
+    description: string;
+    badge?: string;
+  }[];
+  monthlyTrend: {
+    month: string;
+    value: number;
+    label: string;
+    controlValue?: number;
+  }[];
+  objectiveSpecific: {
+    retention?: {
+      beforeRetention: string;
+      afterRetention: string;
+      beforeChurn: string;
+      afterChurn: string;
+      churnReduction: string;
+      customerReturn: string;
+      highValueRetention: string;
+      incrementalRevenue: string;
+      campaignInvestment: string;
+      roi: string;
+    };
+    defense?: {
+      beforeLossRate: string;
+      afterLossRate: string;
+      changeLossRate: string;
+      repeatTransaction: string;
+      competitiveLeakage: string;
+      highValueRetention: string;
+      revenueProtected: string;
+      defenseInvestment: string;
+    };
+    acquisition?: {
+      funnel: {
+        stage: string;
+        count: number;
+        pct: string;
+      }[];
+      cac: string;
+      revenueGenerated: string;
+      ninetyDayRetention: string;
+      densityBefore: string;
+      densityAfter: string;
+    };
+    expansion?: {
+      networkCoverageBefore: string;
+      networkCoverageAfter: string;
+      coverageImprovement: string;
+      customerDistanceBefore: string;
+      customerDistanceAfter: string;
+      distanceImprovement: string;
+      coverageGapBefore: string;
+      coverageGapAfter: string;
+      gapImprovement: string;
+      capex: string;
+      opex: string;
+      forecastRevenue: string;
+      actualRevenue: string;
+      forecastAchievement: string;
+      utilization: string;
+      paybackPeriod: string;
+    };
+  };
+  evaluation: {
+    executionQualityPct: number;
+    targetAchievementPct: number;
+    incrementalImpactSummary: string;
+    roiPct: number;
+    evidenceConfidence: MeasurementConfidenceLevel;
+    finalOutcome: ImpactOutcomeCategory;
+  };
+}
 
 export type RecommendationLifecycleStatus = 
   | 'GENERATED'

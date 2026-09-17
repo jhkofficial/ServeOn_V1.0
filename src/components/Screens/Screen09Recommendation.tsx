@@ -375,41 +375,61 @@ export const Screen09Recommendation: React.FC<Props> = ({
           </button>
         </div>
 
-        {/* HOW WILL WE MEASURE IT? */}
+        {/* HOW WILL WE MEASURE IT? (Pre-Approval Success Measurement Definition) */}
         <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-4">
           <div>
-            <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-              <Activity className="w-4 h-4 text-emerald-700" />
-              <h3 className="font-bold text-slate-900 text-xs uppercase tracking-wider">
-                How will we measure it?
-              </h3>
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Activity className="w-4 h-4 text-emerald-700" />
+                <h3 className="font-bold text-slate-900 text-xs uppercase tracking-wider">
+                  Success Measurement Specification
+                </h3>
+              </div>
+              <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                Pre-Approval Mandate
+              </span>
             </div>
+
             <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-              Verify actual incremental uplift using scientific counterfactual methods (Treatment vs Control split) to isolate pure algorithmic value.
+              <strong className="text-slate-800">How will we know whether this recommendation worked?</strong> Before this recommendation is approved, SERVEON establishes clear scientific success criteria and counterfactual baselines:
             </p>
-            <div className="mt-3 p-3 rounded-lg bg-emerald-50/50 border border-emerald-200 text-xs space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-emerald-800">Measurement Method:</span>
-                <span className="font-bold text-emerald-950 font-mono">Treatment vs Control (50/50)</span>
+
+            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+              <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-500 uppercase block">Primary KPI</span>
+                <span className="font-bold text-slate-900">Incremental Retention</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-emerald-800">Primary Evaluation KPI:</span>
-                <span className="font-bold text-emerald-950">Incremental Retention (+6 ppt uplift)</span>
+              <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-500 uppercase block">Baseline → Target</span>
+                <span className="font-bold text-blue-800 font-mono">72% → 78% (+6 ppt)</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-emerald-800">Expected Net ROI:</span>
-                <span className="font-mono font-bold text-emerald-950">+200% (Rp100M Net Benefit)</span>
+              <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-500 uppercase block">Method &amp; Period</span>
+                <span className="font-bold text-slate-800">Treatment vs Control (90 Days)</span>
+              </div>
+              <div className="p-2.5 rounded-lg bg-emerald-50/50 border border-emerald-200">
+                <span className="text-[10px] font-bold text-emerald-800 uppercase block">Expected ROI</span>
+                <span className="font-mono font-black text-emerald-900">140% (Rp120M / Rp50M)</span>
               </div>
             </div>
           </div>
 
-          <button
-            onClick={() => onNavigate('performance-measurement')}
-            className="w-full py-2.5 px-3 rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs tracking-wider uppercase transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
-          >
-            <span>Open Performance Measurement</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
+          <div className="grid grid-cols-2 gap-2 pt-2">
+            <button
+              onClick={() => onNavigate('impact-outcome-map', area.id)}
+              className="py-2.5 px-3 rounded-lg border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 font-bold text-xs tracking-wider uppercase transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Activity className="w-3.5 h-3.5 text-emerald-700" />
+              <span>Outcome Map</span>
+            </button>
+            <button
+              onClick={() => onNavigate('performance-measurement', area.id)}
+              className="py-2.5 px-3 rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs tracking-wider uppercase transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.99]"
+            >
+              <span>Measurement</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </div>
 
